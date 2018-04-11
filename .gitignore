@@ -1,3 +1,11 @@
 Win32/
 !SPIClient.dll.config
 __history/
+acmepos-ui/DelphiPosDesktop.dproj.local
+acmepos-ui/DelphiPosDesktop.identcache
+acmepos-ui/DelphiPosDesktop.res
+acmepos-ui/DelphiPosDesktop.stat
+pizzapos/DelphiPos.dproj.local
+pizzapos/DelphiPos.identcache
+pizzapos/DelphiPos.res
+pizzapos/DelphiPos.stat
