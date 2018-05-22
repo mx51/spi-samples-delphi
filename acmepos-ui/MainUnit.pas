@@ -57,7 +57,7 @@ var
   Spi: SPIClient_TLB.Spi;
   _posId, _eftposAddress, EncKey, HmacKey: WideString;
   SpiSecrets: SPIClient_TLB.Secrets;
-  UseSynchronize, UseQueue, Init: Boolean;
+  UseSynchronize, UseQueue, SecretsInited: Boolean;
 
 implementation
 
@@ -78,7 +78,7 @@ end;
 
 procedure LoadPersistedState;
 begin
-  Init := False;
+  SecretsInited := False;
   _posId := 'DELPHIPOS';
   //_eftposAddress := 'emulator-prod.herokuapp.com';
 
@@ -87,7 +87,7 @@ begin
   if (EncKey <> '') and (HmacKey <> '') then
   begin
     SpiSecrets := ComWrapper.SecretsInit(EncKey, HmacKey);
-    Init := True;
+    SecretsInited := True;
   end
 end;
 
@@ -505,7 +505,7 @@ procedure SpiStatusChanged(e: SPIClient_TLB.SpiStatusEventArgs); stdcall;
 begin
   if (not Assigned(frmActions)) then
   begin
-    if (not Init) then
+    if (not SecretsInited) then
     begin
       frmActions := TfrmActions.Create(frmMain, Spi);
       frmActions.PopupParent := frmMain;
@@ -513,14 +513,12 @@ begin
     end;
   end;
 
-  if (not Init) then
+  if (not SecretsInited) then
   begin
     frmActions.Show;
 
     if (Spi.CurrentFlow = SpiFlow_Idle) then
       frmActions.richEdtFlow.Lines.Clear();
-
-    Init := False;
   end;
 
   TMyWorkerThread.Create(false);
@@ -702,4 +700,3 @@ begin
 end;
 
 end.
-
