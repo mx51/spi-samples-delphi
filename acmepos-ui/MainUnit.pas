@@ -57,7 +57,7 @@ var
   Spi: SPIClient_TLB.Spi;
   _posId, _eftposAddress, EncKey, HmacKey: WideString;
   SpiSecrets: SPIClient_TLB.Secrets;
-  UseSynchronize, UseQueue: Boolean;
+  UseSynchronize, UseQueue, SecretsInited: Boolean;
 
 implementation
 
@@ -78,14 +78,17 @@ end;
 
 procedure LoadPersistedState;
 begin
+  SecretsInited := False;
   _posId := 'DELPHIPOS';
-  _eftposAddress := 'emulator-prod.herokuapp.com';
-  // _eftposAddress := '10.161.106.54';
+  //_eftposAddress := 'emulator-prod.herokuapp.com';
 
   frmMain.edtPosID.Text := _posId;
   frmMain.edtEftposAddress.Text := _eftposAddress;
   if (EncKey <> '') and (HmacKey <> '') then
+  begin
     SpiSecrets := ComWrapper.SecretsInit(EncKey, HmacKey);
+    SecretsInited := True;
+  end
 end;
 
 procedure PrintFlowInfo(txFlowState: SPIClient_TLB.TransactionFlowState);
@@ -248,7 +251,7 @@ begin
             frmActions.richEdtFlow.Lines.Add('# Checking to see if it matches the $100.00 purchase we did 1 minute ago :)');
 
             TimeMinutes := 1 / MinutesPerDay;
-            success := Spi.GltMatch(gltResponse, TransactionType_Purchase, 10000, Now - TimeMinutes, 'MYORDER123');
+            success := Spi.GltMatch_2(gltResponse, TransactionType_Purchase, 10000, Now - TimeMinutes, 'MYORDER123');
 
             if (success = SuccessState_Unknown) then
             begin
@@ -287,7 +290,8 @@ begin
       case Spi.CurrentFlow of
         SpiFlow_Idle:
           begin
-            frmActions.lblFlowMessage.Caption := 'Unpaired';
+            if Assigned(frmActions) then
+              frmActions.lblFlowMessage.Caption := 'Unpaired';
             exit;
           end;
         SpiFlow_Pairing:
@@ -501,15 +505,21 @@ procedure SpiStatusChanged(e: SPIClient_TLB.SpiStatusEventArgs); stdcall;
 begin
   if (not Assigned(frmActions)) then
   begin
-    frmActions := frmActions.Create(frmMain, Spi);
-    frmActions.PopupParent := frmMain;
-    frmMain.Enabled := False;
+    if (not SecretsInited) then
+    begin
+      frmActions := TfrmActions.Create(frmMain, Spi);
+      frmActions.PopupParent := frmMain;
+      frmMain.Enabled := False;
+    end;
   end;
 
-  frmActions.Show;
+  if (not SecretsInited) then
+  begin
+    frmActions.Show;
 
-  if (Spi.CurrentFlow = SpiFlow_Idle) then
-    frmActions.richEdtFlow.Lines.Clear();
+    if (Spi.CurrentFlow = SpiFlow_Idle) then
+      frmActions.richEdtFlow.Lines.Clear();
+  end;
 
   TMyWorkerThread.Create(false);
 end;
