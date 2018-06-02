@@ -648,6 +648,7 @@ begin
     SpiFlow_Pairing:
     begin
       frmActions.richEdtFlow.Lines.Add('### PAIRING PROCESS UPDATE ###');
+      frmActions.richEdtFlow.Lines.Add('# ' + spi.CurrentPairingFlowState.Message);
       frmActions.richEdtFlow.Lines.Add('# Finished? ' +
         BoolToStr(spi.CurrentPairingFlowState.Finished));
       frmActions.richEdtFlow.Lines.Add('# Successful? ' +
@@ -734,9 +735,8 @@ begin
     '# ' + _posId + ' <-> Eftpos: ' + _eftposAddress + ' #');
   frmActions.richEdtFlow.Lines.Add(
     '# SPI STATUS: ' + ComWrapper.GetSpiStatusEnumName(Spi.CurrentStatus) +
-    ' <-> Eftpos: ' + ComWrapper.GetSpiFlowEnumName(Spi.CurrentFlow) + ' #');
-  frmActions.richEdtFlow.Lines.Add(
-    '# SPI CONFIG: ' + Spi.Config.ToString);
+    '     FLOW:' + ComWrapper.GetSpiFlowEnumName(Spi.CurrentFlow) + ' #');
+  frmActions.richEdtFlow.Lines.Add('# CASH ONLY! #');
   frmActions.richEdtFlow.Lines.Add(
     '# -----------------------------------------');
 end;
@@ -843,6 +843,22 @@ begin
           frmMain.pnlTransActions.Visible := True;
           frmMain.pnlOtherActions.Visible := True;
           frmMain.lblStatus.Color := clGreen;
+
+          if (frmActions.btnAction1.Caption = 'Retry') then
+          begin
+            frmActions.btnAction1.Visible := True;
+            frmActions.btnAction1.Caption := 'OK';
+            frmActions.btnAction2.Visible := False;
+            frmActions.btnAction3.Visible := False;
+            frmActions.lblAmount.Visible := False;
+            frmActions.lblTipAmount.Visible := False;
+            frmActions.lblCashoutAmount.Visible := False;
+            frmActions.lblPrompt.Visible := False;
+            frmActions.edtAmount.Visible := False;
+            frmActions.edtTipAmount.Visible := False;
+            frmActions.edtCashoutAmount.Visible := False;
+            frmActions.radioPrompt.Visible := False;
+          end;
           exit;
         end;
 
@@ -1162,7 +1178,7 @@ begin
   end;
 
   frmActions.Show;
-  frmActions.lblFlowMessage.Caption :=  'Please enter the amount you would like to purchase for in cents';
+  frmActions.lblFlowMessage.Caption := 'Please enter the amount you would like to purchase for in cents';
   frmActions.btnAction1.Visible := True;
   frmActions.btnAction1.Caption := 'Purchase';
   frmActions.btnAction2.Visible := True;
@@ -1173,8 +1189,11 @@ begin
   frmActions.lblCashoutAmount.Visible := True;
   frmActions.lblPrompt.Visible := True;
   frmActions.edtAmount.Visible := True;
+  frmActions.edtAmount.Text := '0';
   frmActions.edtTipAmount.Visible := True;
+  frmActions.edtTipAmount.Text := '0';
   frmActions.edtCashoutAmount.Visible := True;
+  frmActions.edtCashoutAmount.Text := '0';
   frmActions.radioPrompt.Visible := True;
   frmMain.Enabled := False;
 end;
@@ -1189,7 +1208,7 @@ begin
   end;
 
   frmActions.Show;
-  frmActions.lblFlowMessage.Caption :=  'Please enter the amount you would like to refund for in cents';
+  frmActions.lblFlowMessage.Caption := 'Please enter the amount you would like to refund for in cents';
   frmActions.btnAction1.Visible := True;
   frmActions.btnAction1.Caption := 'Refund';
   frmActions.btnAction2.Visible := True;
@@ -1200,8 +1219,11 @@ begin
   frmActions.lblCashoutAmount.Visible := False;
   frmActions.lblPrompt.Visible := False;
   frmActions.edtAmount.Visible := True;
+  frmActions.edtAmount.Text := '0';
   frmActions.edtTipAmount.Visible := False;
+  frmActions.edtTipAmount.Text := '0';
   frmActions.edtCashoutAmount.Visible := False;
+  frmActions.edtCashoutAmount.Text := '0';
   frmActions.radioPrompt.Visible := False;
   frmMain.Enabled := False;
 end;
@@ -1216,7 +1238,7 @@ begin
   end;
 
   frmActions.Show;
-  frmActions.lblFlowMessage.Caption :=  'Please enter the amount you would like to cashout for in cents';
+  frmActions.lblFlowMessage.Caption := 'Please enter the amount you would like to cashout for in cents';
   frmActions.btnAction1.Visible := True;
   frmActions.btnAction1.Caption := 'Cash Out';
   frmActions.btnAction2.Visible := True;
@@ -1227,6 +1249,7 @@ begin
   frmActions.lblCashoutAmount.Visible := False;
   frmActions.lblPrompt.Visible := False;
   frmActions.edtAmount.Visible := True;
+  frmActions.edtAmount.Text := '0';
   frmActions.edtTipAmount.Visible := False;
   frmActions.edtCashoutAmount.Visible := False;
   frmActions.radioPrompt.Visible := False;
@@ -1243,7 +1266,7 @@ begin
   end;
 
   frmActions.Show;
-  frmActions.lblFlowMessage.Caption :=  'Please enter the amount you would like to moto for in cents';
+  frmActions.lblFlowMessage.Caption := 'Please enter the amount you would like to moto for in cents';
   frmActions.btnAction1.Visible := True;
   frmActions.btnAction1.Caption := 'MOTO';
   frmActions.btnAction2.Visible := True;
@@ -1254,6 +1277,7 @@ begin
   frmActions.lblCashoutAmount.Visible := False;
   frmActions.lblPrompt.Visible := False;
   frmActions.edtAmount.Visible := True;
+  frmActions.edtAmount.Text := '0';
   frmActions.edtTipAmount.Visible := False;
   frmActions.edtCashoutAmount.Visible := False;
   frmActions.radioPrompt.Visible := False;
@@ -1412,6 +1436,7 @@ begin
     frmActions.lblCashoutAmount.Visible := False;
     frmActions.lblPrompt.Visible := False;
     frmActions.edtAmount.Visible := True;
+    frmActions.edtAmount.Text := '0';
     frmActions.edtTipAmount.Visible := False;
     frmActions.edtCashoutAmount.Visible := False;
     frmActions.radioPrompt.Visible := False;

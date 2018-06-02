@@ -200,7 +200,7 @@ begin
   begin
     Spi.AckFlowEndedAndBackToIdle;
     frmActions.richEdtFlow.Lines.Clear;
-    frmActions.lblFlowMessage.Caption := 'Select from the options below';
+    frmActions.lblFlowMessage.Caption := 'Select from the options';
     frmMain.DPrintStatusAndActions;
     frmMain.Enabled := True;
     frmMain.btnPair.Enabled := True;
@@ -234,8 +234,8 @@ begin
     end
     else
     begin
-      frmActions.lblFlowStatus.Caption :=
-        'Retry by selecting from the options below';
+      frmActions.lblFlowMessage.Caption :=
+        'Retry by selecting from the options';
       frmMain.DPrintStatusAndActions;
     end;
   end
