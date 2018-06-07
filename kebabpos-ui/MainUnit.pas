@@ -736,9 +736,11 @@ begin
   frmActions.richEdtFlow.Lines.Add(
     '# SPI STATUS: ' + ComWrapper.GetSpiStatusEnumName(Spi.CurrentStatus) +
     '     FLOW:' + ComWrapper.GetSpiFlowEnumName(Spi.CurrentFlow) + ' #');
-  frmActions.richEdtFlow.Lines.Add('# CASH ONLY! #');
   frmActions.richEdtFlow.Lines.Add(
     '# -----------------------------------------');
+  frmActions.richEdtFlow.Lines.Add(
+    '# POS: v' + ComWrapper.GetPosVersion + ' Spi: v' +
+    ComWrapper.GetSpiVersion);
 end;
 
 procedure PrintStatusAndActions();
