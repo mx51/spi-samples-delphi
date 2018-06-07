@@ -3,7 +3,7 @@ object frmMain: TfrmMain
   Top = 103
   AutoSize = True
   BorderIcons = [biSystemMenu]
-  Caption = 'Kebab Delphi Pos'
+  Caption = 'Motel Delphi Pos'
   ClientHeight = 498
   ClientWidth = 626
   Color = clBtnFace
@@ -266,7 +266,7 @@ object frmMain: TfrmMain
       ExplicitWidth = 87
     end
     object richEdtReceipt: TRichEdit
-      Left = 1
+      Left = 0
       Top = 35
       Width = 307
       Height = 455
@@ -282,11 +282,11 @@ object frmMain: TfrmMain
       Zoom = 100
     end
   end
-  object pnlTransActions: TPanel
+  object pnlPreAuthActions: TPanel
     Left = 0
     Top = 257
     Width = 313
-    Height = 129
+    Height = 128
     BorderStyle = bsSingle
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -296,14 +296,14 @@ object frmMain: TfrmMain
     ParentFont = False
     TabOrder = 3
     Visible = False
-    object lblTransActions: TLabel
+    object lblPreAuthActions: TLabel
       Left = 1
       Top = 1
       Width = 307
       Height = 33
       Align = alTop
       Alignment = taCenter
-      Caption = 'Transactional Actions'
+      Caption = 'Pre-Auth Actions'
       Color = clSilver
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
@@ -313,14 +313,14 @@ object frmMain: TfrmMain
       ParentColor = False
       ParentFont = False
       Transparent = False
-      ExplicitWidth = 251
+      ExplicitWidth = 197
     end
-    object btnPurchase: TButton
-      Left = 36
+    object btnVerify: TButton
+      Left = 20
       Top = 40
       Width = 80
       Height = 34
-      Caption = 'Purchase'
+      Caption = 'Verify'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -16
@@ -328,14 +328,14 @@ object frmMain: TfrmMain
       Font.Style = []
       ParentFont = False
       TabOrder = 0
-      OnClick = btnPurchaseClick
+      OnClick = btnVerifyClick
     end
-    object btnRefund: TButton
-      Left = 208
-      Top = 40
+    object btnExtend: TButton
+      Left = 117
+      Top = 80
       Width = 80
       Height = 34
-      Caption = 'Refund'
+      Caption = 'Extend'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -16
@@ -343,14 +343,14 @@ object frmMain: TfrmMain
       Font.Style = []
       ParentFont = False
       TabOrder = 1
-      OnClick = btnRefundClick
+      OnClick = btnExtendClick
     end
-    object btnSettle: TButton
-      Left = 122
+    object btnTopDown: TButton
+      Left = 20
       Top = 80
       Width = 80
       Height = 34
-      Caption = 'Settle'
+      Caption = 'Top Down'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -16
@@ -358,14 +358,14 @@ object frmMain: TfrmMain
       Font.Style = []
       ParentFont = False
       TabOrder = 2
-      OnClick = btnSettleClick
+      OnClick = btnTopDownClick
     end
-    object btnSettleEnq: TButton
-      Left = 208
+    object btnComplete: TButton
+      Left = 212
       Top = 80
       Width = 80
       Height = 34
-      Caption = 'Settle Enq'
+      Caption = 'Complete'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -16
@@ -373,14 +373,14 @@ object frmMain: TfrmMain
       Font.Style = []
       ParentFont = False
       TabOrder = 3
-      OnClick = btnSettleEnqClick
+      OnClick = btnCompleteClick
     end
-    object btnMoto: TButton
-      Left = 122
+    object btnOpen: TButton
+      Left = 117
       Top = 40
       Width = 80
       Height = 34
-      Caption = 'MOTO'
+      Caption = 'Open'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -16
@@ -388,14 +388,14 @@ object frmMain: TfrmMain
       Font.Style = []
       ParentFont = False
       TabOrder = 4
-      OnClick = btnMotoClick
+      OnClick = btnOpenClick
     end
-    object btnCashOut: TButton
-      Left = 36
-      Top = 80
+    object btnTopUp: TButton
+      Left = 212
+      Top = 40
       Width = 80
       Height = 34
-      Caption = 'Cash Out'
+      Caption = 'Top Up'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -16
@@ -403,7 +403,7 @@ object frmMain: TfrmMain
       Font.Style = []
       ParentFont = False
       TabOrder = 5
-      OnClick = btnCashOutClick
+      OnClick = btnTopUpClick
     end
   end
   object pnlOtherActions: TPanel

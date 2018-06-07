@@ -12,20 +12,16 @@ type
     pnlActions: TPanel;
     btnAction1: TButton;
     btnAction2: TButton;
-    lblAmount: TLabel;
-    edtAmount: TEdit;
+    lblPreauthId: TLabel;
+    edtPreauthId: TEdit;
     pnlFlow: TPanel;
     lblFlow: TLabel;
     lblFlowStatus: TLabel;
     lblFlowMessage: TLabel;
     richEdtFlow: TRichEdit;
     btnAction3: TButton;
-    edtTipAmount: TEdit;
-    lblTipAmount: TLabel;
-    edtCashoutAmount: TEdit;
-    lblCashoutAmount: TLabel;
-    lblPrompt: TLabel;
-    radioPrompt: TRadioGroup;
+    edtAmount: TEdit;
+    lblAmount: TLabel;
     procedure btnAction1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormHide(Sender: TObject);
@@ -41,6 +37,7 @@ type
 
 var
   Spi: SPIClient_TLB.Spi;
+  SpiPreauth: SPIClient_TLB.SpiPreauth;
   ComWrapper: SPIClient_TLB.ComWrapper;
 
 implementation
@@ -53,115 +50,125 @@ constructor TfrmActions.Create(AOwner: TComponent; _Spi: SPIClient_TLB.Spi);
 begin
   inherited Create(AOwner);
   Spi := _Spi;
+  SpiPreauth := Spi.EnablePreauth;
   ComWrapper := CreateComObject(CLASS_ComWrapper) AS SPIClient_TLB.ComWrapper;
 end;
 
-procedure DoPurchase;
+procedure DoOpen;
 var
-  purchase: SPIClient_TLB.InitiateTxResult;
-  amount, tipAmount, cashoutAmount: Integer;
-  posRefId: WideString;
-  promptForCashout: Boolean;
-begin
-  amount := StrToInt(frmActions.edtAmount.Text);
-  tipAmount := StrToInt(frmActions.edtTipAmount.Text);
-  cashoutAmount := StrToInt(frmActions.edtCashoutAmount.Text);
-  frmActions.richEdtFlow.Lines.Clear;
-
-  if frmActions.radioPrompt.ItemIndex = 0 then
-  begin
-    promptForCashout := True;
-  end
-  else
-  begin
-    promptForCashout := False;
-  end;
-
-  purchase := CreateComObject(CLASS_InitiateTxResult)
-    AS SPIClient_TLB.InitiateTxResult;
-  posRefId := 'kebab-' + FormatDateTime('dd-mm-yyyy-hh-nn-ss', Now);
-  purchase := Spi.InitiatePurchaseTxV2(posRefId, amount, tipAmount,
-    cashoutAmount, promptForCashout);
-
-  if (purchase.Initiated) then
-  begin
-    frmActions.richEdtFlow.Lines.Add
-      ('# Purchase Initiated. Will be updated with Progress.');
-  end
-  else
-  begin
-    frmActions.richEdtFlow.Lines.Add('# Could not initiate purchase: ' +
-      purchase.Message + '. Please Retry.');
-  end;
-end;
-
-procedure DoRefund;
-var
-  refund: SPIClient_TLB.InitiateTxResult;
+  initRes: SPIClient_TLB.InitiateTxResult;
   amount: Integer;
 begin
   amount := StrToInt(frmActions.edtAmount.Text);
-  refund := CreateComObject(CLASS_InitiateTxResult)
+  initRes := CreateComObject(CLASS_InitiateTxResult)
     AS SPIClient_TLB.InitiateTxResult;
-  refund := Spi.InitiateRefundTx('rfnd-' + FormatDateTime('dd-mm-yyyy-hh-nn-ss', Now), amount);
+  initRes := SpiPreauth.InitiateOpenTx('propen-' +
+    FormatDateTime('dd-mm-yyyy-hh-nn-ss', Now), amount);
 
-  if (refund.Initiated) then
+  if (initRes.Initiated) then
   begin
     frmActions.richEdtFlow.Lines.Add
-      ('# Refund Initiated. Will be updated with Progress.');
+      ('# Preauth request Initiated. Will be updated with Progress.');
   end
   else
   begin
-    frmActions.richEdtFlow.Lines.Add('# Could not initiate refund: ' +
-      refund.Message + '. Please Retry.');
+    frmActions.richEdtFlow.Lines.Add('# Could not initiate preauth request: ' +
+      initRes.Message + '. Please Retry.');
   end;
 end;
 
-procedure DoCashOut;
+procedure DoTopUp;
 var
-  coRes: SPIClient_TLB.InitiateTxResult;
+  initRes: SPIClient_TLB.InitiateTxResult;
   amount: Integer;
 begin
   amount := StrToInt(frmActions.edtAmount.Text);
-  coRes := CreateComObject(CLASS_InitiateTxResult)
+  initRes := CreateComObject(CLASS_InitiateTxResult)
     AS SPIClient_TLB.InitiateTxResult;
-  coRes := Spi.InitiateCashoutOnlyTx('cshout-' + FormatDateTime('dd-mm-yyyy-hh-nn-ss', Now), amount);
+  initRes := SpiPreauth.InitiateTopupTx('prtopup-' + frmActions.edtPreauthId.Text
+    + '-' + FormatDateTime('dd-mm-yyyy-hh-nn-ss', Now), frmActions.edtPreauthId.Text, amount);
 
-  if (coRes.Initiated) then
+  if (initRes.Initiated) then
   begin
-    frmActions.richEdtFlow.Lines.Add
-      ('# Moto Initiated. Will be updated with Progress.');
+    frmActions.richEdtFlow.Lines.Add(
+      '# Preauth request initiated. Will be updated with Progress.');
   end
   else
   begin
-    frmActions.richEdtFlow.Lines.Add('# Could not initiate cashout: ' +
-      coRes.Message + '. Please Retry.');
+    frmActions.richEdtFlow.Lines.Add('# Could not initiate preauth request: ' +
+      initRes.Message + '. Please Retry.');
   end;
 end;
 
-procedure DoMoto;
+procedure DoTopDown;
 var
-  motoRes: SPIClient_TLB.InitiateTxResult;
+  initRes: SPIClient_TLB.InitiateTxResult;
   amount: Integer;
 begin
   amount := StrToInt(frmActions.edtAmount.Text);
-  motoRes := CreateComObject(CLASS_InitiateTxResult)
+  initRes := CreateComObject(CLASS_InitiateTxResult)
     AS SPIClient_TLB.InitiateTxResult;
-  motoRes := Spi.InitiateMotoPurchaseTx('moto-' + FormatDateTime('dd-mm-yyyy-hh-nn-ss', Now), amount);
+  initRes := SpiPreauth.InitiatePartialCancellationTx('prtopd-' +
+    frmActions.edtPreauthId.Text + '-' + FormatDateTime('dd-mm-yyyy-hh-nn-ss', Now), frmActions.edtPreauthId.Text, amount);
 
-  if (motoRes.Initiated) then
+  if (initRes.Initiated) then
   begin
-    frmActions.richEdtFlow.Lines.Add
-      ('# Moto Initiated. Will be updated with Progress.');
+    frmActions.richEdtFlow.Lines.Add(
+      '# Preauth request initiated. Will be updated with Progress.');
   end
   else
   begin
-    frmActions.richEdtFlow.Lines.Add('# Could not initiate moto: ' +
-      motoRes.Message + '. Please Retry.');
+    frmActions.richEdtFlow.Lines.Add('# Could not initiate preauth request: ' +
+      initRes.Message + '. Please Retry.');
   end;
 end;
 
-procedure TfrmActions.FormClose(Sender: TObject;  var Action: TCloseAction);
+procedure DoExtend;
+var
+  initRes: SPIClient_TLB.InitiateTxResult;
+begin
+  initRes := CreateComObject(CLASS_InitiateTxResult)
+    AS SPIClient_TLB.InitiateTxResult;
+  initRes := SpiPreauth.InitiateExtendTx('prtopd-' + frmActions.edtPreauthId.Text
+    + '-' + FormatDateTime('dd-mm-yyyy-hh-nn-ss', Now), frmActions.edtPreauthId.Text);
+
+  if (initRes.Initiated) then
+  begin
+    frmActions.richEdtFlow.Lines.Add(
+      '# Preauth request initiated. Will be updated with Progress.');
+  end
+  else
+  begin
+    frmActions.richEdtFlow.Lines.Add('# Could not initiate preauth request: ' +
+      initRes.Message + '. Please Retry.');
+  end;
+end;
+
+procedure DoComplete;
+var
+  initRes: SPIClient_TLB.InitiateTxResult;
+  amount: Integer;
+begin
+  amount := StrToInt(frmActions.edtAmount.Text);
+  initRes := CreateComObject(CLASS_InitiateTxResult)
+    AS SPIClient_TLB.InitiateTxResult;
+  initRes := SpiPreauth.InitiateCompletionTx('prcomp-' + frmActions.edtPreauthId.Text
+    + '-' + FormatDateTime('dd-mm-yyyy-hh-nn-ss', Now), frmActions.edtPreauthId.Text, amount);
+
+  if (initRes.Initiated) then
+  begin
+    frmActions.richEdtFlow.Lines.Add(
+      '# Preauth request initiated. Will be updated with Progress.');
+  end
+  else
+  begin
+    frmActions.richEdtFlow.Lines.Add('# Could not initiate preauth request: ' +
+      initRes.Message + '. Please Retry.');
+  end;
+end;
+
+procedure TfrmActions.FormClose(Sender: TObject;
+  var Action: TCloseAction);
 begin
   Action := caFree;
 end;
@@ -216,44 +223,28 @@ begin
   begin
     Spi.AckFlowEndedAndBackToIdle;
     frmActions.richEdtFlow.Lines.Clear;
-    if (Spi.CurrentTxFlowState.type_ = TransactionType_Purchase) then
-    begin
-      DoPurchase;
-    end
-    else if (Spi.CurrentTxFlowState.type_ = TransactionType_Refund) then
-    begin
-      DoRefund;
-    end
-    else if (Spi.CurrentTxFlowState.type_ = TransactionType_CashoutOnly) then
-    begin
-      DoCashOut;
-    end
-    else if (Spi.CurrentTxFlowState.type_ = TransactionType_MOTO) then
-    begin
-      DoMoto;
-    end
-    else
-    begin
-      frmActions.lblFlowMessage.Caption :=
-        'Retry by selecting from the options';
-      frmMain.DPrintStatusAndActions;
-    end;
+    frmActions.lblFlowMessage.Caption := 'Retry by selecting from the options';
+    frmMain.DPrintStatusAndActions;
   end
-  else if (btnAction1.Caption = 'Purchase') then
+  else if (btnAction1.Caption = 'Open') then
   begin
-    DoPurchase;
+    DoOpen;
   end
-  else if (btnAction1.Caption = 'Refund') then
+  else if (btnAction1.Caption = 'Top Up') then
   begin
-    DoRefund;
+    DoTopUp;
   end
-  else if (btnAction1.Caption = 'Cash Out') then
+  else if (btnAction1.Caption = 'Top Down') then
   begin
-    DoCashOut;
+    DoTopDown;
   end
-  else if (btnAction1.Caption = 'MOTO') then
+  else if (btnAction1.Caption = 'Extend') then
   begin
-    DoMoto;
+    DoExtend;
+  end
+  else if (btnAction1.Caption = 'Complete') then
+  begin
+    DoComplete;
   end;
 end;
 

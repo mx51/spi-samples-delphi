@@ -4,8 +4,8 @@ object frmActions: TfrmActions
   AutoSize = True
   BorderIcons = []
   Caption = 'Actions'
-  ClientHeight = 465
-  ClientWidth = 449
+  ClientHeight = 457
+  ClientWidth = 423
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -23,9 +23,9 @@ object frmActions: TfrmActions
   TextHeight = 13
   object pnlActions: TPanel
     Left = 0
-    Top = 336
-    Width = 449
-    Height = 129
+    Top = 330
+    Width = 423
+    Height = 127
     BorderStyle = bsSingle
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -34,9 +34,23 @@ object frmActions: TfrmActions
     Font.Style = []
     ParentFont = False
     TabOrder = 0
-    object lblAmount: TLabel
+    object lblPreauthId: TLabel
       Left = 2
       Top = 12
+      Width = 65
+      Height = 16
+      Caption = 'PreAuth Id:'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+      Visible = False
+    end
+    object lblAmount: TLabel
+      Left = 2
+      Top = 47
       Width = 93
       Height = 16
       Caption = 'Amount (cents):'
@@ -48,50 +62,8 @@ object frmActions: TfrmActions
       ParentFont = False
       Visible = False
     end
-    object lblTipAmount: TLabel
-      Left = 2
-      Top = 40
-      Width = 115
-      Height = 16
-      Caption = 'Tip Amount (cents):'
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -13
-      Font.Name = 'Tahoma'
-      Font.Style = []
-      ParentFont = False
-      Visible = False
-    end
-    object lblCashoutAmount: TLabel
-      Left = 2
-      Top = 70
-      Width = 143
-      Height = 16
-      Caption = 'Cashout Amount (cents):'
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -13
-      Font.Name = 'Tahoma'
-      Font.Style = []
-      ParentFont = False
-      Visible = False
-    end
-    object lblPrompt: TLabel
-      Left = 2
-      Top = 100
-      Width = 114
-      Height = 16
-      Caption = 'Prompt For Cashout'
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -13
-      Font.Name = 'Tahoma'
-      Font.Style = []
-      ParentFont = False
-      Visible = False
-    end
     object btnAction1: TButton
-      Left = 270
+      Left = 251
       Top = 4
       Width = 166
       Height = 34
@@ -106,7 +78,7 @@ object frmActions: TfrmActions
       OnClick = btnAction1Click
     end
     object btnAction2: TButton
-      Left = 270
+      Left = 251
       Top = 44
       Width = 166
       Height = 34
@@ -120,25 +92,22 @@ object frmActions: TfrmActions
       Visible = False
       OnClick = btnAction2Click
     end
-    object edtAmount: TEdit
-      Left = 151
-      Top = 4
-      Width = 113
+    object edtPreauthId: TEdit
+      Left = 116
+      Top = 9
+      Width = 129
       Height = 27
-      Alignment = taRightJustify
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -16
       Font.Name = 'Tahoma'
       Font.Style = []
-      NumbersOnly = True
       ParentFont = False
       TabOrder = 2
-      Text = '0'
       Visible = False
     end
     object btnAction3: TButton
-      Left = 270
+      Left = 251
       Top = 84
       Width = 166
       Height = 34
@@ -152,10 +121,10 @@ object frmActions: TfrmActions
       Visible = False
       OnClick = btnAction3Click
     end
-    object edtTipAmount: TEdit
-      Left = 151
-      Top = 37
-      Width = 113
+    object edtAmount: TEdit
+      Left = 116
+      Top = 44
+      Width = 129
       Height = 27
       Alignment = taRightJustify
       Font.Charset = DEFAULT_CHARSET
@@ -166,50 +135,13 @@ object frmActions: TfrmActions
       NumbersOnly = True
       ParentFont = False
       TabOrder = 4
-      Text = '0'
-      Visible = False
-    end
-    object radioPrompt: TRadioGroup
-      Left = 151
-      Top = 84
-      Width = 113
-      Height = 37
-      Columns = 2
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -13
-      Font.Name = 'Tahoma'
-      Font.Style = []
-      ItemIndex = 0
-      Items.Strings = (
-        'Yes'
-        'No')
-      ParentFont = False
-      TabOrder = 6
-      Visible = False
-    end
-    object edtCashoutAmount: TEdit
-      Left = 151
-      Top = 70
-      Width = 113
-      Height = 27
-      Alignment = taRightJustify
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -16
-      Font.Name = 'Tahoma'
-      Font.Style = []
-      NumbersOnly = True
-      ParentFont = False
-      TabOrder = 5
-      Text = '0'
       Visible = False
     end
   end
   object pnlFlow: TPanel
     Left = 0
     Top = 0
-    Width = 449
+    Width = 423
     Height = 336
     BorderStyle = bsSingle
     Font.Charset = DEFAULT_CHARSET
@@ -222,7 +154,7 @@ object frmActions: TfrmActions
     object lblFlow: TLabel
       Left = 0
       Top = 0
-      Width = 225
+      Width = 217
       Height = 33
       Alignment = taRightJustify
       AutoSize = False
@@ -238,9 +170,9 @@ object frmActions: TfrmActions
       Transparent = False
     end
     object lblFlowStatus: TLabel
-      Left = 219
+      Left = 211
       Top = 0
-      Width = 230
+      Width = 206
       Height = 33
       AutoSize = False
       Caption = 'Idle'
@@ -257,7 +189,7 @@ object frmActions: TfrmActions
     object lblFlowMessage: TLabel
       Left = 0
       Top = 33
-      Width = 436
+      Width = 417
       Height = 49
       AutoSize = False
       Font.Charset = DEFAULT_CHARSET
@@ -272,7 +204,7 @@ object frmActions: TfrmActions
     object richEdtFlow: TRichEdit
       Left = 0
       Top = 88
-      Width = 449
+      Width = 417
       Height = 242
       Font.Charset = ANSI_CHARSET
       Font.Color = clWindowText
