@@ -113,46 +113,39 @@ var
   purchaseResponse: SPIClient_TLB.PurchaseResponse;
   success: SPIClient_TLB.SuccessState;
 begin
-  if (frmMain.edtReference.Text = '') then
-  begin
-    ShowMessage('Please enter refence!');
-  end
-  else
-  begin
-    gltResponse := CreateComObject(CLASS_GetLastTransactionResponse)
-      AS SPIClient_TLB.GetLastTransactionResponse;
-    purchaseResponse := CreateComObject(CLASS_PurchaseResponse)
-      AS SPIClient_TLB.PurchaseResponse;
+  gltResponse := CreateComObject(CLASS_GetLastTransactionResponse)
+    AS SPIClient_TLB.GetLastTransactionResponse;
+  purchaseResponse := CreateComObject(CLASS_PurchaseResponse)
+    AS SPIClient_TLB.PurchaseResponse;
 
-    if (txFlowState.Response <> nil) then
+  if (txFlowState.Response <> nil) then
+  begin
+  gltResponse := ComWrapper.GetLastTransactionResponseInit(
+    txFlowState.Response);
+
+    success := Spi.GltMatch(gltResponse, frmMain.edtReference.Text);
+    if (success = SuccessState_Unknown) then
     begin
-      gltResponse := ComWrapper.GetLastTransactionResponseInit(
-        txFlowState.Response);
-
-      success := Spi.GltMatch(gltResponse, frmMain.edtReference.Text);
-      if (success = SuccessState_Unknown) then
-      begin
-        frmActions.richEdtFlow.Lines.Add(
-          '# Did not retrieve Expected Transaction. Here is what we got:');
-      end
-      else
-      begin
-        frmActions.richEdtFlow.Lines.Add(
-          '# Tx Matched Expected Purchase Request.');
-      end;
-
-      purchaseResponse := ComWrapper.PurchaseResponseInit(txFlowState.Response);
-      frmActions.richEdtFlow.Lines.Add('# Scheme: ' +
-        purchaseResponse.SchemeName);
-      frmActions.richEdtFlow.Lines.Add('# Response: ' +
-        purchaseResponse.GetResponseText);
-      frmActions.richEdtFlow.Lines.Add('# RRN: ' + purchaseResponse.GetRRN);
-      frmActions.richEdtFlow.Lines.Add('# Error: ' +
-        txFlowState.Response.GetError);
-      frmActions.richEdtFlow.Lines.Add('# Customer Receipt:');
-      frmMain.richEdtReceipt.Lines.Add
-        (TrimLeft(purchaseResponse.GetCustomerReceipt));
+      frmActions.richEdtFlow.Lines.Add(
+      '# Did not retrieve Expected Transaction. Here is what we got:');
+    end
+    else
+    begin
+      frmActions.richEdtFlow.Lines.Add(
+      '# Tx Matched Expected Purchase Request.');
     end;
+
+    purchaseResponse := ComWrapper.PurchaseResponseInit(txFlowState.Response);
+      frmActions.richEdtFlow.Lines.Add('# Scheme: ' +
+      purchaseResponse.SchemeName);
+    frmActions.richEdtFlow.Lines.Add('# Response: ' +
+      purchaseResponse.GetResponseText);
+    frmActions.richEdtFlow.Lines.Add('# RRN: ' + purchaseResponse.GetRRN);
+    frmActions.richEdtFlow.Lines.Add('# Error: ' +
+      txFlowState.Response.GetError);
+    frmActions.richEdtFlow.Lines.Add('# Customer Receipt:');
+    frmMain.richEdtReceipt.Lines.Add
+      (TrimLeft(purchaseResponse.GetCustomerReceipt));
   end;
 end;
 
@@ -1376,36 +1369,50 @@ procedure TfrmMain.btnLastTxClick(Sender: TObject);
 var
   gltres: SPIClient_TLB.InitiateTxResult;
 begin
-  gltres := CreateComObject(CLASS_InitiateTxResult)
-    AS SPIClient_TLB.InitiateTxResult;
-
-  gltres := Spi.InitiateGetLastTx;
-
-  if (gltres.Initiated) then
+  if (not Assigned(frmActions)) then
   begin
-    frmActions.richEdtFlow.Lines.Add
-      ('# GLT Initiated. Will be updated with Progress.');
+    frmActions := frmActions.Create(frmMain, Spi);
+    frmActions.PopupParent := frmMain;
+    frmMain.Enabled := False;
+  end;
+
+  if (edtReference.Text = '') then
+  begin
+    ShowMessage('Please enter refence!');
   end
   else
   begin
-    frmActions.richEdtFlow.Lines.Add('# Could not initiate GLT: ' +
-      gltres.Message + '. Please Retry.');
-  end;
+    frmActions.Show;
+    frmActions.btnAction1.Visible := True;
+    frmActions.btnAction1.Caption := 'Cancel';
+    frmActions.btnAction2.Visible := False;
+    frmActions.btnAction3.Visible := False;
+    frmActions.lblAmount.Visible := False;
+    frmActions.lblTipAmount.Visible := False;
+    frmActions.lblCashoutAmount.Visible := False;
+    frmActions.lblPrompt.Visible := False;
+    frmActions.edtAmount.Visible := False;
+    frmActions.edtTipAmount.Visible := False;
+    frmActions.edtCashoutAmount.Visible := False;
+    frmActions.radioPrompt.Visible := False;
+    frmMain.Enabled := False;
 
-  frmActions.Show;
-  frmActions.btnAction1.Visible := True;
-  frmActions.btnAction1.Caption := 'Cancel';
-  frmActions.btnAction2.Visible := False;
-  frmActions.btnAction3.Visible := False;
-  frmActions.lblAmount.Visible := False;
-  frmActions.lblTipAmount.Visible := False;
-  frmActions.lblCashoutAmount.Visible := False;
-  frmActions.lblPrompt.Visible := False;
-  frmActions.edtAmount.Visible := False;
-  frmActions.edtTipAmount.Visible := False;
-  frmActions.edtCashoutAmount.Visible := False;
-  frmActions.radioPrompt.Visible := False;
-  frmMain.Enabled := False;
+    gltres := CreateComObject(CLASS_InitiateTxResult)
+      AS SPIClient_TLB.InitiateTxResult;
+
+    gltres := Spi.InitiateGetLastTx;
+
+    if (gltres.Initiated) then
+    begin
+      frmActions.richEdtFlow.Lines.Add
+        ('# GLT Initiated. Will be updated with Progress.');
+    end
+    else
+    begin
+      frmActions.richEdtFlow.Lines.Add('# Could not initiate GLT: ' +
+        gltres.Message + '. Please Retry.');
+    end;
+  end;
 end;
 
 procedure TfrmMain.btnRecoverClick(Sender: TObject);
