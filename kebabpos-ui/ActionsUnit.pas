@@ -130,7 +130,7 @@ begin
   if (coRes.Initiated) then
   begin
     frmActions.richEdtFlow.Lines.Add
-      ('# Moto Initiated. Will be updated with Progress.');
+      ('# Cashout Initiated. Will be updated with Progress.');
   end
   else
   begin
