@@ -1223,9 +1223,7 @@ begin
   frmActions.edtAmount.Visible := True;
   frmActions.edtAmount.Text := '0';
   frmActions.edtTipAmount.Visible := False;
-  frmActions.edtTipAmount.Text := '0';
   frmActions.edtCashoutAmount.Visible := False;
-  frmActions.edtCashoutAmount.Text := '0';
   frmActions.radioPrompt.Visible := False;
   frmMain.Enabled := False;
 end;
@@ -1437,8 +1435,7 @@ begin
     frmActions.lblTipAmount.Visible := False;
     frmActions.lblCashoutAmount.Visible := False;
     frmActions.lblPrompt.Visible := False;
-    frmActions.edtAmount.Visible := True;
-    frmActions.edtAmount.Text := '0';
+    frmActions.edtAmount.Visible := False;
     frmActions.edtTipAmount.Visible := False;
     frmActions.edtCashoutAmount.Visible := False;
     frmActions.radioPrompt.Visible := False;
