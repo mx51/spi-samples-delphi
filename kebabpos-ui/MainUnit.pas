@@ -127,7 +127,7 @@ begin
     if (success = SuccessState_Unknown) then
     begin
       frmActions.richEdtFlow.Lines.Add(
-      '# Did not retrieve Expected Transaction. Here is what we got:');
+        '# Did not retrieve Expected Transaction. Here is what we got:');
     end
     else
     begin
@@ -146,7 +146,12 @@ begin
     frmActions.richEdtFlow.Lines.Add('# Customer Receipt:');
     frmMain.richEdtReceipt.Lines.Add
       (TrimLeft(purchaseResponse.GetCustomerReceipt));
+  end
+  else
+  begin
+    frmActions.richEdtFlow.Lines.Add('# Could Not Retrieve Last Transaction.');
   end;
+
 end;
 
 procedure HandleFinishedSettlementEnquiry(txFlowState: SPIClient_TLB.TransactionFlowState);
@@ -1376,42 +1381,35 @@ begin
     frmMain.Enabled := False;
   end;
 
-  if (edtReference.Text = '') then
+  frmActions.Show;
+  frmActions.btnAction1.Visible := True;
+  frmActions.btnAction1.Caption := 'Cancel';
+  frmActions.btnAction2.Visible := False;
+  frmActions.btnAction3.Visible := False;
+  frmActions.lblAmount.Visible := False;
+  frmActions.lblTipAmount.Visible := False;
+  frmActions.lblCashoutAmount.Visible := False;
+  frmActions.lblPrompt.Visible := False;
+  frmActions.edtAmount.Visible := False;
+  frmActions.edtTipAmount.Visible := False;
+  frmActions.edtCashoutAmount.Visible := False;
+  frmActions.radioPrompt.Visible := False;
+  frmMain.Enabled := False;
+
+  gltres := CreateComObject(CLASS_InitiateTxResult)
+    AS SPIClient_TLB.InitiateTxResult;
+
+  gltres := Spi.InitiateGetLastTx;
+
+  if (gltres.Initiated) then
   begin
-    ShowMessage('Please enter refence!');
+    frmActions.richEdtFlow.Lines.Add
+      ('# GLT Initiated. Will be updated with Progress.');
   end
   else
   begin
-    frmActions.Show;
-    frmActions.btnAction1.Visible := True;
-    frmActions.btnAction1.Caption := 'Cancel';
-    frmActions.btnAction2.Visible := False;
-    frmActions.btnAction3.Visible := False;
-    frmActions.lblAmount.Visible := False;
-    frmActions.lblTipAmount.Visible := False;
-    frmActions.lblCashoutAmount.Visible := False;
-    frmActions.lblPrompt.Visible := False;
-    frmActions.edtAmount.Visible := False;
-    frmActions.edtTipAmount.Visible := False;
-    frmActions.edtCashoutAmount.Visible := False;
-    frmActions.radioPrompt.Visible := False;
-    frmMain.Enabled := False;
-
-    gltres := CreateComObject(CLASS_InitiateTxResult)
-      AS SPIClient_TLB.InitiateTxResult;
-
-    gltres := Spi.InitiateGetLastTx;
-
-    if (gltres.Initiated) then
-    begin
-      frmActions.richEdtFlow.Lines.Add
-        ('# GLT Initiated. Will be updated with Progress.');
-    end
-    else
-    begin
-      frmActions.richEdtFlow.Lines.Add('# Could not initiate GLT: ' +
-        gltres.Message + '. Please Retry.');
-    end;
+    frmActions.richEdtFlow.Lines.Add('# Could not initiate GLT: ' +
+      gltres.Message + '. Please Retry.');
   end;
 end;
 
