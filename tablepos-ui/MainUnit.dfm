@@ -343,6 +343,7 @@ object frmMain: TfrmMain
       Font.Style = []
       ParentFont = False
       TabOrder = 1
+      OnClick = btnPrintBillClick
     end
     object btnOpen: TButton
       Left = 60

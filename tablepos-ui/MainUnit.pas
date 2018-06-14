@@ -65,22 +65,21 @@ type
 
 type
   TBillsStore = record
-    BillId: array [1..25] of Char;
+    BillId: string[255];
     Bill: TBill;
   end;
 
 type
   TTableToBillMapping = record
-    TableId: array [1..25] of Char;
-    BillId: array [1..25] of Char;
+    TableId: string[255];
+    BillId: string[255];
   end;
 
 type
   TAssemblyBillDataStore = record
-    BillId: array [1..25] of Char;
-    BillData: array [1..25] of Char;
+    BillId: string[255];
+    BillData: string[255];
   end;
-
 var
   frmMain: TfrmMain;
   frmActions: TfrmActions;
@@ -90,8 +89,8 @@ var
   SpiSecrets: SPIClient_TLB.Secrets;
   UseSynchronize, UseQueue, Init: Boolean;
   SpiPayAtTable: SPIClient_TLB.SpiPayAtTable;
-  tableToBillMappingDict: TDictionary<WideString, Widestring>;
   billsStoreDict: TDictionary<WideString, TBill>;
+  tableToBillMappingDict: TDictionary<WideString, Widestring>;
   assemblyBillDataStoreDict: TDictionary<WideString, Widestring>;
 
 implementation
@@ -119,13 +118,56 @@ begin
     end;
 end;
 
+procedure PersistState;
+var
+  billsStoreFile: File of TBillsStore;
+  tableToBillMappingFile: File of TTableToBillMapping;
+  assemblyBillDataStoreFile: File of TAssemblyBillDataStore;
+  billRecord: TBillsStore;
+  tableToBillMappingRecord: TTableToBillMapping;
+  assemblyBillDataRecord: TAssemblyBillDataStore;
+  billRecordItem: TPair<WideString, TBill>;
+  tableToBillMappingRecordItem: TPair<WideString, WideString>;
+  assemblyBillDataRecordItem: TPair<WideString, WideString>;
+begin
+  AssignFile(billsStoreFile, 'billsStore.bin');
+  ReWrite(billsStoreFile);
+  for billRecordItem in billsStoreDict do
+  begin
+    billRecord.BillId := billRecordItem.Key;
+    billRecord.Bill := billRecordItem.Value;
+    Write(billsStoreFile, billRecord);
+  end;
+  CloseFile(billsStoreFile);
+
+  AssignFile(tableToBillMappingFile, 'tableToBillMapping.bin');
+  ReWrite(tableToBillMappingFile);
+  for tableToBillMappingRecordItem in tableToBillMappingDict do
+  begin
+    tableToBillMappingRecord.TableId := tableToBillMappingRecordItem.Key;
+    tableToBillMappingRecord.BillId := tableToBillMappingRecordItem.Value;
+    Write(tableToBillMappingFile, tableToBillMappingRecord);
+  end;
+  CloseFile(tableToBillMappingFile);
+
+  AssignFile(assemblyBillDataStoreFile, 'assemblyBillDataStore.bin');
+  ReWrite(assemblyBillDataStoreFile);
+  for assemblyBillDataRecordItem in assemblyBillDataStoreDict do
+  begin
+    assemblyBillDataRecord.BillId := assemblyBillDataRecordItem.Key;
+    assemblyBillDataRecord.BillData:= assemblyBillDataRecordItem.Value;
+    Write(assemblyBillDataStoreFile, assemblyBillDataRecord);
+  end;
+  CloseFile(assemblyBillDataStoreFile);
+end;
+
 procedure LoadPersistedState;
 var
-  tableToBillMappingFile: File of TTableToBillMapping;
   billsStoreFile: File of  TBillsStore;
+  tableToBillMappingFile: File of TTableToBillMapping;
   assemblyBillDataStoreFile: File of TAssemblyBillDataStore;
-  tableToBillMapping: TTableToBillMapping;
   billsStore: TBillsStore;
+  tableToBillMapping: TTableToBillMapping;
   assemblyBillDataStore: TAssemblyBillDataStore;
 begin
   Init := False;
@@ -147,6 +189,7 @@ begin
     begin
       AssignFile(billsStoreFile, 'billsStore.bin');
       FileMode := fmOpenRead;
+      Reset(billsStoreFile);
       while not Eof(billsStoreFile) do
       begin
         Read(billsStoreFile, billsStore);
@@ -156,6 +199,7 @@ begin
 
       AssignFile(tableToBillMappingFile, 'tableToBillMapping.bin');
       FileMode := fmOpenRead;
+      Reset(billsStoreFile);
       while not Eof(tableToBillMappingFile) do
       begin
         Read(tableToBillMappingFile, tableToBillMapping);
@@ -166,11 +210,11 @@ begin
 
       AssignFile(assemblyBillDataStoreFile, 'assemblyBillDataStore.bin');
       FileMode := fmOpenRead;
+      Reset(billsStoreFile);
       while not Eof(assemblyBillDataStoreFile) do
       begin
         Read(assemblyBillDataStoreFile, assemblyBillDataStore);
-        assemblyBillDataStoreDict.Add(assemblyBillDataStore.BillId,
-          assemblyBillDataStore.BillData);
+        assemblyBillDataStoreDict.Add(assemblyBillDataStore.BillId, assemblyBillDataStore.BillData);
       end;
       CloseFile(assemblyBillDataStoreFile);
     end;
@@ -228,53 +272,105 @@ begin
     frmActions.richEdtFlow.Lines.Add('# Success: ' +
       ComWrapper.GetSuccessStateEnumName(txFlowState.Success));
 
-    if (txFlowState.Finished) then
+    If (txFlowState.Finished) then
     begin
-      if (txFlowState.AwaitingSignatureCheck) then
-      begin
-        frmMain.richEdtReceipt.Lines.Add(
-          TrimLeft(txFlowState.SignatureRequiredMessage.GetMerchantReceipt));
-      end;
+      case txFlowState.Success of
+        SuccessState_Success:
+        case txFlowState.type_ of
+          TransactionType_Purchase:
+          begin
+            frmActions.richEdtFlow.Lines.Add('# WOOHOO - WE GOT PAID!');
+            purchaseResponse := ComWrapper.PurchaseResponseInit(
+              txFlowState.Response);
+            frmActions.richEdtFlow.Lines.Add('# Response: ' +
+              purchaseResponse.GetResponseText);
+            frmActions.richEdtFlow.Lines.Add('# RRN: ' +
+              purchaseResponse.GetRRN);
+            frmActions.richEdtFlow.Lines.Add('# Scheme: ' +
+              purchaseResponse.SchemeName);
+            frmActions.richEdtFlow.Lines.Add('# Customer Receipt:');
+            frmMain.richEdtReceipt.Lines.Add
+              (TrimLeft(purchaseResponse.GetCustomerReceipt));
 
-      If (txFlowState.Finished) then
-      begin
-        case txFlowState.Success of
-          SuccessState_Success:
-          case txFlowState.type_ of
-            TransactionType_Purchase:
+            frmActions.richEdtFlow.Lines.Add('# PURCHASE: ' +
+              IntToStr(purchaseResponse.GetPurchaseAmount));
+            frmActions.richEdtFlow.Lines.Add('# TIP: ' +
+              IntToStr(purchaseResponse.GetTipAmount));
+            frmActions.richEdtFlow.Lines.Add('# CASHOUT: ' +
+              IntToStr(purchaseResponse.GetCashoutAmount));
+            frmActions.richEdtFlow.Lines.Add('# BANKED NON-CASH AMOUNT: ' +
+              IntToStr(purchaseResponse.GetBankNonCashAmount));
+            frmActions.richEdtFlow.Lines.Add('# BANKED CASH AMOUNT: ' +
+              IntToStr(purchaseResponse.GetBankCashAmount));
+          end;
+
+          TransactionType_Refund:
+          begin
+            frmActions.richEdtFlow.Lines.Add('# REFUND GIVEN- OH WELL!');
+            refundResponse := ComWrapper.RefundResponseInit(
+              txFlowState.Response);
+            frmActions.richEdtFlow.Lines.Add('# Response: ' +
+              refundResponse.GetResponseText);
+            frmActions.richEdtFlow.Lines.Add('# RRN: ' +
+              refundResponse.GetRRN);
+            frmActions.richEdtFlow.Lines.Add('# Scheme: ' +
+              refundResponse.SchemeName);
+            frmActions.richEdtFlow.Lines.Add('# Customer Receipt:');
+            frmMain.richEdtReceipt.Lines.Add
+              (TrimLeft(refundResponse.GetCustomerReceipt));
+          end;
+
+          TransactionType_Settle:
+          begin
+            frmActions.richEdtFlow.Lines.Add('# SETTLEMENT SUCCESSFUL!');
+
+            if (txFlowState.Response <> nil) then
             begin
-              frmActions.richEdtFlow.Lines.Add('# WOOHOO - WE GOT PAID!');
-              purchaseResponse := ComWrapper.PurchaseResponseInit(
+              settleResponse := ComWrapper.SettlementInit(
                 txFlowState.Response);
               frmActions.richEdtFlow.Lines.Add('# Response: ' +
-			          purchaseResponse.GetResponseText);
+                settleResponse.GetResponseText);
+              frmActions.richEdtFlow.Lines.Add('# Merchant Receipt:');
+              frmMain.richEdtReceipt.Lines.Add
+                (TrimLeft(settleResponse.GetReceipt));
+            end;
+          end;
+        end;
+
+        SuccessState_Failed:
+        case txFlowState.type_ of
+          TransactionType_Purchase:
+          begin
+            frmActions.richEdtFlow.Lines.Add('# WE DID NOT GET PAID :(');
+            if (txFlowState.Response <> nil) then
+            begin
+              purchaseResponse := ComWrapper.PurchaseResponseInit(
+                txFlowState.Response);
+              frmActions.richEdtFlow.Lines.Add('# Error: ' +
+                txFlowState.Response.GetError);
+              frmActions.richEdtFlow.Lines.Add('# Response: ' +
+                purchaseResponse.GetResponseText);
               frmActions.richEdtFlow.Lines.Add('# RRN: ' +
                 purchaseResponse.GetRRN);
               frmActions.richEdtFlow.Lines.Add('# Scheme: ' +
                 purchaseResponse.SchemeName);
               frmActions.richEdtFlow.Lines.Add('# Customer Receipt:');
               frmMain.richEdtReceipt.Lines.Add
-			          (TrimLeft(purchaseResponse.GetCustomerReceipt));
-
-              frmActions.richEdtFlow.Lines.Add('# PURCHASE: ' +
-                IntToStr(purchaseResponse.GetPurchaseAmount));
-              frmActions.richEdtFlow.Lines.Add('# TIP: ' +
-                IntToStr(purchaseResponse.GetTipAmount));
-              frmActions.richEdtFlow.Lines.Add('# CASHOUT: ' +
-                IntToStr(purchaseResponse.GetCashoutAmount));
-              frmActions.richEdtFlow.Lines.Add('# BANKED NON-CASH AMOUNT: ' +
-                IntToStr(purchaseResponse.GetBankNonCashAmount));
-              frmActions.richEdtFlow.Lines.Add('# BANKED CASH AMOUNT: ' +
-                IntToStr(purchaseResponse.GetBankCashAmount));
+                (TrimLeft(purchaseResponse.GetCustomerReceipt));
             end;
+          end;
 
-            TransactionType_Refund:
+          TransactionType_Refund:
+          begin
+            frmActions.richEdtFlow.Lines.Add('# REFUND FAILED!');
+            if (txFlowState.Response <> nil) then
             begin
-              frmActions.richEdtFlow.Lines.Add('# REFUND GIVEN- OH WELL!');
+              frmActions.richEdtFlow.Lines.Add('# Error: ' +
+                txFlowState.Response.GetError);
               refundResponse := ComWrapper.RefundResponseInit(
                 txFlowState.Response);
               frmActions.richEdtFlow.Lines.Add('# Response: ' +
-			          refundResponse.GetResponseText);
+                refundResponse.GetResponseText);
               frmActions.richEdtFlow.Lines.Add('# RRN: ' +
                 refundResponse.GetRRN);
               frmActions.richEdtFlow.Lines.Add('# Scheme: ' +
@@ -283,103 +379,42 @@ begin
               frmMain.richEdtReceipt.Lines.Add
                 (TrimLeft(refundResponse.GetCustomerReceipt));
             end;
-
-            TransactionType_Settle:
-            begin
-              frmActions.richEdtFlow.Lines.Add('# SETTLEMENT SUCCESSFUL!');
-
-              if (txFlowState.Response <> nil) then
-              begin
-                settleResponse := ComWrapper.SettlementInit(
-                  txFlowState.Response);
-                frmActions.richEdtFlow.Lines.Add('# Response: ' +
-			            settleResponse.GetResponseText);
-                frmActions.richEdtFlow.Lines.Add('# Merchant Receipt:');
-                frmMain.richEdtReceipt.Lines.Add
-                  (TrimLeft(settleResponse.GetReceipt));
-              end;
-            end;
           end;
 
-          SuccessState_Failed:
-          case txFlowState.type_ of
-            TransactionType_Purchase:
+          TransactionType_Settle:
+          begin
+            frmActions.richEdtFlow.Lines.Add('# SETTLEMENT FAILED!');
+
+            if (txFlowState.Response <> nil) then
             begin
-              frmActions.richEdtFlow.Lines.Add('# WE DID NOT GET PAID :(');
-              if (txFlowState.Response <> nil) then
-              begin
-                purchaseResponse := ComWrapper.PurchaseResponseInit(
-                  txFlowState.Response);
-                frmActions.richEdtFlow.Lines.Add('# Error: ' +
-                  txFlowState.Response.GetError);
-                frmActions.richEdtFlow.Lines.Add('# Response: ' +
-                  purchaseResponse.GetResponseText);
-                frmActions.richEdtFlow.Lines.Add('# RRN: ' +
-                  purchaseResponse.GetRRN);
-                frmActions.richEdtFlow.Lines.Add('# Scheme: ' +
-                  purchaseResponse.SchemeName);
-                frmActions.richEdtFlow.Lines.Add('# Customer Receipt:');
-                frmMain.richEdtReceipt.Lines.Add
-                  (TrimLeft(purchaseResponse.GetCustomerReceipt));
-              end;
-            end;
-
-            TransactionType_Refund:
-            begin
-              frmActions.richEdtFlow.Lines.Add('# REFUND FAILED!');
-              if (txFlowState.Response <> nil) then
-              begin
-                frmActions.richEdtFlow.Lines.Add('# Error: ' +
-			            txFlowState.Response.GetError);
-                refundResponse := ComWrapper.RefundResponseInit(
-                  txFlowState.Response);
-                frmActions.richEdtFlow.Lines.Add('# Response: ' +
-			            refundResponse.GetResponseText);
-                frmActions.richEdtFlow.Lines.Add('# RRN: ' +
-                  refundResponse.GetRRN);
-                frmActions.richEdtFlow.Lines.Add('# Scheme: ' +
-                  refundResponse.SchemeName);
-                frmActions.richEdtFlow.Lines.Add('# Customer Receipt:');
-                frmMain.richEdtReceipt.Lines.Add
-			            (TrimLeft(refundResponse.GetCustomerReceipt));
-              end;
-            end;
-
-            TransactionType_Settle:
-	          begin
-              frmActions.richEdtFlow.Lines.Add('# SETTLEMENT FAILED!');
-
-              if (txFlowState.Response <> nil) then
-              begin
-                settleResponse := ComWrapper.SettlementInit(
+              settleResponse := ComWrapper.SettlementInit(
                 txFlowState.Response);
-                frmActions.richEdtFlow.Lines.Add('# Response: ' +
-			            settleResponse.GetResponseText);
-                frmActions.richEdtFlow.Lines.Add('# Error: ' +
-			            txFlowState.Response.GetError);
-                frmActions.richEdtFlow.Lines.Add('# Merchant Receipt:');
-                frmMain.richEdtReceipt.Lines.Add(
-                  TrimLeft(settleResponse.GetReceipt));
-              end;
+              frmActions.richEdtFlow.Lines.Add('# Response: ' +
+                settleResponse.GetResponseText);
+              frmActions.richEdtFlow.Lines.Add('# Error: ' +
+                txFlowState.Response.GetError);
+              frmActions.richEdtFlow.Lines.Add('# Merchant Receipt:');
+              frmMain.richEdtReceipt.Lines.Add(
+                TrimLeft(settleResponse.GetReceipt));
             end;
           end;
+        end;
 
-          SuccessState_Unknown:
-          case txFlowState.type_ of
-            TransactionType_Purchase:
-            begin
-              frmActions.richEdtFlow.Lines.Add('# WE''RE NOT QUITE SURE WHETHER WE GOT PAID OR NOT :/');
-              frmActions.richEdtFlow.Lines.Add('# CHECK THE LAST TRANSACTION ON THE EFTPOS ITSELF FROM THE APPROPRIATE MENU ITEM.');
-              frmActions.richEdtFlow.Lines.Add('# IF YOU CONFIRM THAT THE CUSTOMER PAID, CLOSE THE ORDER.');
-              frmActions.richEdtFlow.Lines.Add('# OTHERWISE, RETRY THE PAYMENT FROM SCRATCH.');
-            end;
+        SuccessState_Unknown:
+        case txFlowState.type_ of
+          TransactionType_Purchase:
+          begin
+            frmActions.richEdtFlow.Lines.Add('# WE''RE NOT QUITE SURE WHETHER WE GOT PAID OR NOT :/');
+            frmActions.richEdtFlow.Lines.Add('# CHECK THE LAST TRANSACTION ON THE EFTPOS ITSELF FROM THE APPROPRIATE MENU ITEM.');
+            frmActions.richEdtFlow.Lines.Add('# IF YOU CONFIRM THAT THE CUSTOMER PAID, CLOSE THE ORDER.');
+            frmActions.richEdtFlow.Lines.Add('# OTHERWISE, RETRY THE PAYMENT FROM SCRATCH.');
+          end;
 
-            TransactionType_Refund:
-            begin
-              frmActions.richEdtFlow.Lines.Add('# WE''RE NOT QUITE SURE WHETHER THE REFUND WENT THROUGH OR NOT :/');
-              frmActions.richEdtFlow.Lines.Add('# CHECK THE LAST TRANSACTION ON THE EFTPOS ITSELF FROM THE APPROPRIATE MENU ITEM.');
-              frmActions.richEdtFlow.Lines.Add('# YOU CAN THE TAKE THE APPROPRIATE ACTION.');
-            end;
+          TransactionType_Refund:
+          begin
+            frmActions.richEdtFlow.Lines.Add('# WE''RE NOT QUITE SURE WHETHER THE REFUND WENT THROUGH OR NOT :/');
+            frmActions.richEdtFlow.Lines.Add('# CHECK THE LAST TRANSACTION ON THE EFTPOS ITSELF FROM THE APPROPRIATE MENU ITEM.');
+            frmActions.richEdtFlow.Lines.Add('# YOU CAN THE TAKE THE APPROPRIATE ACTION.');
           end;
         end;
       end;
@@ -392,7 +427,7 @@ begin
     '# ' + _posId + ' <-> Eftpos: ' + _eftposAddress + ' #');
   frmActions.richEdtFlow.Lines.Add(
     '# SPI STATUS: ' + ComWrapper.GetSpiStatusEnumName(Spi.CurrentStatus) +
-    ' <-> Eftpos: ' + ComWrapper.GetSpiFlowEnumName(Spi.CurrentFlow) + ' #');
+    '     FLOW: ' + ComWrapper.GetSpiFlowEnumName(Spi.CurrentFlow) + ' #');
   frmActions.richEdtFlow.Lines.Add(
     '# ----------------TABLES-------------------');
   frmActions.richEdtFlow.Lines.Add(
@@ -699,43 +734,19 @@ begin
   );
 end;
 
-function PayAtTableGetBillDetails(tableId: PChar; operatorId: PChar;
-  billId: PChar): SPIClient_TLB.BillStatusResponse; stdcall;
+procedure PayAtTableGetBillDetails(billStatusInfo: SPIClient_TLB.BillStatusInfo;
+  out billStatus: SPIClient_TLB.BillStatusResponse) stdcall;
 var
   billData, billIdStr, tableIdStr, operatorIdStr: WideString;
   exit1: Boolean;
 begin
-  Result := CreateComObject(CLASS_BillStatusResponse)
+  billStatus := CreateComObject(CLASS_BillStatusResponse)
     AS SPIClient_TLB.BillStatusResponse;
 
   exit1 := False;
-
-//  if (billId = ' ') then
-//  begin
-//    billIdStr := '';
-//  end
-//  else
-//  begin
-//    billIdStr := WideCharToString(billId);
-//  end;
-
-  if (tableId = nil) then
-  begin
-    tableIdStr := '';
-  end
-  else
-  begin
-    tableIdStr := WideCharToString(tableId);;
-  end;
-
-  if (operatorId = nil) then
-  begin
-    operatorIdStr := '';
-  end
-  else
-  begin
-    operatorIdStr := WideCharToString(operatorId);
-  end;
+  billIdStr := billStatusInfo.BillId;
+  tableIdStr := billStatusInfo.TableId;
+  operatorIdStr := billStatusInfo.OperatorId;
 
   if (billIdStr = '') then
   begin
@@ -743,11 +754,11 @@ begin
     //This means that we are being asked for the bill by its table number.
 
     //Let's see if we have it.
-    if (not tableToBillMappingDict.ContainsKey(billIdStr)) then
+    if (not tableToBillMappingDict.ContainsKey(tableIdStr)) then
     begin
       //We didn't find a bill for this table.
       //We just tell the Eftpos that.
-      Result.Result := BillRetrievalResult_INVALID_TABLE_ID;
+      billStatus.Result := BillRetrievalResult_INVALID_TABLE_ID;
       exit1 := True;
     end
     else
@@ -764,46 +775,53 @@ begin
     begin
       //We could not find the billId that was asked for.
       //We just tell the Eftpos that.
-      Result.Result := BillRetrievalResult_INVALID_TABLE_ID;
+      billStatus.Result := BillRetrievalResult_INVALID_BILL_ID;
     end
     else
     begin
-      Result.Result := BillRetrievalResult_SUCCESS;
-      Result.BillId := billIdStr;
-      Result.TableId := tableIdStr;
-      Result.TotalAmount := billsStoreDict[billIdStr].TotalAmount;
-      Result.OutstandingAmount := billsStoreDict[billIdStr].OutstandingAmount;
+      billStatus.Result := BillRetrievalResult_SUCCESS;
+      billStatus.BillId := billIdStr;
+      billStatus.TableId := tableIdStr;
+      billStatus.TotalAmount := billsStoreDict[billIdStr].TotalAmount;
+      billStatus.OutstandingAmount :=
+        billsStoreDict[billIdStr].OutstandingAmount;
 
       assemblyBillDataStoreDict.TryGetValue(billIdStr, billData);
-      Result.BillData := billData;
+      billStatus.BillData := billData;
     end;
   end;
 end;
 
-function PayAtTableBillPaymentReceived(billPayment: SPIClient_TLB.BillPayment;
-  updatedBillData: PChar): SPIClient_TLB.BillStatusResponse; stdcall;
+procedure PayAtTableBillPaymentReceived(billPaymentInfo:
+  SPIClient_TLB.BillPaymentInfo; out billStatus:
+  SPIClient_TLB.BillStatusResponse) stdcall;
 var
   updatedBillDataStr: WideString;
+  billPayment: SPIClient_TLB.BillPayment;
 begin
-  Result := CreateComObject(CLASS_BillStatusResponse)
+  billStatus := CreateComObject(CLASS_BillStatusResponse)
     AS SPIClient_TLB.BillStatusResponse;
-
-  if (updatedBillData = nil) then
-  begin
-    updatedBillDataStr := '';
-  end
-  else
-  begin
-    updatedBillDataStr:= WideCharToString(updatedBillData);
-  end;
+  billPayment := CreateComObject(CLASS_BillPayment)
+    AS SPIClient_TLB.BillPayment;
+  billPayment := billPaymentInfo.BillPayment;
+  updatedBillDataStr := billPaymentInfo.UpdatedBillData;
 
   if (not billsStoreDict.ContainsKey(billPayment.BillId)) then
   begin
-    // We cannot find this bill.
-    Result.Result := BillRetrievalResult_INVALID_TABLE_ID;
+    billStatus.Result := BillRetrievalResult_INVALID_BILL_ID;
   end
   else
   begin
+    if (not Assigned(frmActions)) then
+    begin
+      if (not Init) then
+      begin
+        frmActions := TfrmActions.Create(frmMain, Spi);
+        frmActions.PopupParent := frmMain;
+        frmMain.Enabled := False;
+      end;
+    end;
+
     frmActions.richEdtFlow.Lines.Add('# Got a ' +
       ComWrapper.GetPaymentTypeEnumName(billPayment.PaymentType) +
       ' Payment against bill ' +  billPayment.BillId + ' for table ' +
@@ -823,12 +841,26 @@ begin
       ' Tips:$' +
       IntToStr(billsStoreDict[billPayment.BillId].tippedAmount div 100));
 
-    assemblyBillDataStoreDict[billPayment.BillId] := updatedBillDataStr;
+    if(not assemblyBillDataStoreDict.ContainsKey(billPayment.BillId)) Then
+    begin
+       assemblyBillDataStoreDict.Add(billPayment.BillId, updatedBillDataStr);
+    end;
 
-    Result.Result := BillRetrievalResult_SUCCESS;
-    Result.TotalAmount := billsStoreDict[billPayment.BillId].TotalAmount;
-    Result.OutstandingAmount :=
+    billStatus.Result := BillRetrievalResult_SUCCESS;
+    billStatus.TotalAmount := billsStoreDict[billPayment.BillId].TotalAmount;
+    billStatus.OutstandingAmount :=
       billsStoreDict[billPayment.BillId].OutstandingAmount;
+
+    frmActions.Show;
+    frmActions.btnAction1.Visible := True;
+    frmActions.btnAction1.Caption := 'OK';
+    frmActions.btnAction2.Visible := False;
+    frmActions.btnAction3.Visible := False;
+    frmActions.lblAmount.Visible := False;
+    frmActions.edtAmount.Visible := False;
+    frmActions.lblTableId.Visible := False;
+    frmActions.edtTableId.Visible := False;
+    frmMain.Enabled := False;
   end;
 end;
 
@@ -872,6 +904,7 @@ begin
   end;
 
   frmActions.Show;
+  frmActions.richEdtFlow.Lines.Clear();
   frmActions.lblFlowMessage.Caption :=
     'Please enter the table id you would like to open';
   frmActions.btnAction1.Visible := True;
@@ -884,6 +917,7 @@ begin
   frmActions.lblTableId.Visible := True;
   frmActions.lblTableId.Caption := 'Table Id:';
   frmActions.edtTableId.Visible := True;
+  frmActions.edtTableId.Text := '';
   frmMain.Enabled := False;
 end;
 
@@ -897,6 +931,7 @@ begin
   end;
 
   frmActions.Show;
+  frmActions.richEdtFlow.Lines.Clear();
   frmActions.lblFlowMessage.Caption :=
     'Please enter the table id you would like to close';
   frmActions.btnAction1.Visible := True;
@@ -909,6 +944,7 @@ begin
   frmActions.lblTableId.Visible := True;
   frmActions.lblTableId.Caption := 'Table Id:';
   frmActions.edtTableId.Visible := True;
+  frmActions.edtTableId.Text := '';
   frmMain.Enabled := False;
 end;
 
@@ -922,6 +958,7 @@ begin
   end;
 
   frmActions.Show;
+  frmActions.richEdtFlow.Lines.Clear();
   frmActions.lblFlowMessage.Caption :=
     'Please enter the table id you would like to add';
   frmActions.btnAction1.Visible := True;
@@ -934,6 +971,7 @@ begin
   frmActions.lblTableId.Visible := True;
   frmActions.lblTableId.Caption := 'Table Id:';
   frmActions.edtTableId.Visible := True;
+  frmActions.edtTableId.Text := '';
   frmMain.Enabled := False;
 end;
 
@@ -947,8 +985,9 @@ begin
   end;
 
   frmActions.Show;
+  frmActions.richEdtFlow.Lines.Clear();
   frmActions.lblFlowMessage.Caption :=
-    'Please enter the table id you would like to add';
+    'Please enter the table id you would like to print bill for in cents';
   frmActions.btnAction1.Visible := True;
   frmActions.btnAction1.Caption := 'Print Bill';
   frmActions.btnAction2.Visible := True;
@@ -956,6 +995,7 @@ begin
   frmActions.btnAction3.Visible := False;
   frmActions.lblAmount.Visible := True;
   frmActions.edtAmount.Visible := True;
+  frmActions.edtAmount.Text := '0';
   frmActions.lblTableId.Visible := True;
   frmActions.lblTableId.Caption := 'Bill Id:';
   frmActions.edtTableId.Visible := True;
@@ -996,6 +1036,7 @@ begin
     frmActions.Close;
   end;
 
+  PersistState;
   Action := caFree;
 end;
 
@@ -1015,6 +1056,7 @@ begin
   end;
 
   frmActions.Show;
+  frmActions.richEdtFlow.Lines.Clear();
   frmActions.lblFlowMessage.Caption :=  'Please enter the amount you would like to purchase for in cents';
   frmActions.btnAction1.Visible := True;
   frmActions.btnAction1.Caption := 'Purchase';
@@ -1023,6 +1065,7 @@ begin
   frmActions.btnAction3.Visible := False;
   frmActions.lblAmount.Visible := True;
   frmActions.edtAmount.Visible := True;
+  frmActions.edtAmount.Text := '0';
   frmActions.lblTableId.Visible := False;
   frmActions.edtTableId.Visible := False;
   frmMain.Enabled := False;
@@ -1038,6 +1081,7 @@ begin
   end;
 
   frmActions.Show;
+  frmActions.richEdtFlow.Lines.Clear();
   frmActions.lblFlowMessage.Caption :=
     'Please enter the amount you would like to refund for in cents';
   frmActions.btnAction1.Visible := True;
@@ -1064,6 +1108,7 @@ begin
   end;
 
   frmActions.Show;
+  frmActions.richEdtFlow.Lines.Clear();
   frmActions.btnAction1.Visible := True;
   frmActions.btnAction1.Caption := 'Cancel';
   frmActions.btnAction2.Visible := False;
@@ -1096,6 +1141,7 @@ var
   newBill: TBill;
   billId, tableId: WideString;
 begin
+  frmActions.richEdtFlow.Lines.Clear();
   tableId := frmActions.edtTableId.Text;
   if (tableToBillMappingDict.ContainsKey(tableId)) then
   begin
@@ -1129,6 +1175,7 @@ procedure TfrmMain.CloseTable;
 var
   billId, tableId: WideString;
 begin
+  frmActions.richEdtFlow.Lines.Clear();
   tableId := frmActions.edtTableId.Text;
   if (not tableToBillMappingDict.ContainsKey(tableId)) then
   begin
@@ -1169,6 +1216,7 @@ var
   billId, tableId: WideString;
   amountCents: Integer;
 begin
+  frmActions.richEdtFlow.Lines.Clear();
   tableId := frmActions.edtTableId.Text;
   integer.TryParse(frmActions.edtAmount.Text, amountCents);
   if (not tableToBillMappingDict.ContainsKey(tableId)) then
@@ -1202,6 +1250,7 @@ procedure TfrmMain.PrintBill;
 var
   billId: WideString;
 begin
+  frmActions.richEdtFlow.Lines.Clear();
   billId := frmActions.edtTableId.Text;
   if (not billsStoreDict.ContainsKey(billId)) then
   begin
