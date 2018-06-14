@@ -287,7 +287,7 @@ begin
     '# ' + _posId + ' <-> Eftpos: ' + _eftposAddress + ' #');
   frmActions.richEdtFlow.Lines.Add(
     '# SPI STATUS: ' + ComWrapper.GetSpiStatusEnumName(Spi.CurrentStatus) +
-    ' <-> Eftpos: ' + ComWrapper.GetSpiFlowEnumName(Spi.CurrentFlow) + ' #');
+    '     FLOW: ' + ComWrapper.GetSpiFlowEnumName(Spi.CurrentFlow) + ' #');
   frmActions.richEdtFlow.Lines.Add('# CASH ONLY! #');
   frmActions.richEdtFlow.Lines.Add(
     '# -----------------------------------------');
