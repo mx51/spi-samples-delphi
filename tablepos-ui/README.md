@@ -1,6 +1,6 @@
 # Welcome to AcmePos
 
-AcmePos is a desktop POS.
+AcmePos is a command-line POS.
 
 Its purpose is to demonstrate to a POS software developer how they might integrate with a PIN pad (card payment terminal) using Assembly Payment's SPI (Simple Payments Integration) as documented at [harness.simplepaymentapi.com](harness.simplepaymentapi.com).
 
