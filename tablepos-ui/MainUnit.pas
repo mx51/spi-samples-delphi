@@ -172,7 +172,6 @@ var
 begin
   Init := False;
   _posId := 'DELPHIPOS';
-  _eftposAddress := '10.20.14.29';
 
   billsStoreDict := TDictionary<WideString, TBill>.Create;
   tableToBillMappingDict := TDictionary<WideString, WideString>.Create;
@@ -828,7 +827,7 @@ begin
       billPayment.TableId);
 
     billsStoreDict[billPayment.BillId].OutstandingAmount :=
-      billsStoreDict[billPayment.BillId].OutstandingAmount +
+      billsStoreDict[billPayment.BillId].OutstandingAmount -
         billPayment.PurchaseAmount;
     billsStoreDict[billPayment.BillId].tippedAmount :=
       billsStoreDict[billPayment.BillId].tippedAmount + billPayment.TipAmount;
@@ -843,7 +842,11 @@ begin
 
     if(not assemblyBillDataStoreDict.ContainsKey(billPayment.BillId)) Then
     begin
-       assemblyBillDataStoreDict.Add(billPayment.BillId, updatedBillDataStr);
+      assemblyBillDataStoreDict.Add(billPayment.BillId, updatedBillDataStr);
+    end
+    else
+    begin
+      assemblyBillDataStoreDict[billPayment.BillId] := updatedBillDataStr;
     end;
 
     billStatus.Result := BillRetrievalResult_SUCCESS;
