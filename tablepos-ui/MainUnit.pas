@@ -732,6 +732,7 @@ begin
   if (not Init) then
   begin
     frmActions.Show;
+    frmActions.lblFlowMessage.Caption := 'It''s trying to connect';
 
     if (Spi.CurrentFlow = SpiFlow_Idle) then
       frmActions.richEdtFlow.Lines.Clear();
