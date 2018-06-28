@@ -307,8 +307,18 @@ begin
         SpiFlow_Idle:
           begin
             if Assigned(frmActions) then
+            begin
               frmActions.lblFlowMessage.Caption := 'Unpaired';
-            exit;
+              frmActions.btnAction1.Visible := True;
+              frmActions.btnAction1.Caption := 'OK-Unpaired';
+              frmActions.btnAction2.Visible := False;
+              frmActions.btnAction3.Visible := False;
+              frmActions.lblAmount.Visible := False;
+              frmActions.lblPreauthId.Visible := False;
+              frmActions.edtAmount.Visible := False;
+              frmActions.edtPreauthId.Visible := False;
+              exit;
+            end;
           end;
         SpiFlow_Pairing:
           begin
