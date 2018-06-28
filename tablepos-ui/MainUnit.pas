@@ -98,11 +98,16 @@ implementation
 {$R *.dfm}
 
 function BillToString(newBill: TBill): WideString;
+var
+  totalAmount, outstandingAmount, tippedAmount: Single;
 begin
+  totalAmount :=  newBill.TotalAmount / 100;
+  outstandingAmount := newBill.OutstandingAmount / 100;
+  tippedAmount := newBill.tippedAmount / 100;
+
   Result := newBill.BillId + ' - Table:' + newBill.TableId + 'Total:$' +
-    IntToStr(newBill.TotalAmount div 100) + ' Outstanding:$' +
-    IntToStr(newBill.OutstandingAmount div 100) + ' Tips:$' +
-    IntToStr(newBill.tippedAmount div 100);
+    CurrToStr(totalAmount) + ' Outstanding:$' +
+    CurrToStr(outstandingAmount) + ' Tips:$' + CurrToStr(tippedAmount);
 end;
 
 function FormExists(apForm: TForm): boolean;
@@ -225,6 +230,7 @@ var
   purchaseResponse: SPIClient_TLB.PurchaseResponse;
   refundResponse: SPIClient_TLB.RefundResponse;
   settleResponse: SPIClient_TLB.Settlement;
+  amountCents: Single;
 begin
   purchaseResponse := CreateComObject(CLASS_PurchaseResponse)
     AS SPIClient_TLB.PurchaseResponse;
@@ -260,8 +266,9 @@ begin
     frmActions.richEdtFlow.Lines.Add('# Id: ' + txFlowState.PosRefId);
     frmActions.richEdtFlow.Lines.Add('# Type: ' +
       ComWrapper.GetTransactionTypeEnumName(txFlowState.type_));
+    amountCents := txFlowState.amountCents / 100;
     frmActions.richEdtFlow.Lines.Add('# Request Amount: ' +
-      IntToStr(txFlowState.amountCents div 100));
+      CurrToStr(amountCents));
     frmActions.richEdtFlow.Lines.Add('# Waiting For Signature: ' +
       BoolToStr(txFlowState.AwaitingSignatureCheck));
     frmActions.richEdtFlow.Lines.Add('# Attempting to Cancel : ' +
@@ -437,9 +444,9 @@ begin
     '# Assembly Bills: ' + IntToStr(assemblyBillDataStoreDict.Count));
   frmActions.richEdtFlow.Lines.Add(
     '# -----------------------------------------');
-//  frmActions.richEdtFlow.Lines.Add(
-//    '# POS: v' + ComWrapper.GetPosVersion + ' Spi: v' +
-//    ComWrapper.GetSpiVersion);
+  frmActions.richEdtFlow.Lines.Add(
+    '# POS: v' + ComWrapper.GetPosVersion + ' Spi: v' +
+    ComWrapper.GetSpiVersion);
 end;
 
 procedure PrintStatusAndActions();
@@ -807,6 +814,7 @@ procedure PayAtTableBillPaymentReceived(billPaymentInfo:
 var
   updatedBillDataStr: WideString;
   billPayment: SPIClient_TLB.BillPayment;
+  totalAmount, outstandingAmount, tippedAmount: Single;
 begin
   billStatus := CreateComObject(CLASS_BillStatusResponse)
     AS SPIClient_TLB.BillStatusResponse;
@@ -841,14 +849,17 @@ begin
         billPayment.PurchaseAmount;
     billsStoreDict[billPayment.BillId].tippedAmount :=
       billsStoreDict[billPayment.BillId].tippedAmount + billPayment.TipAmount;
+
+    totalAmount := billsStoreDict[billPayment.BillId].TotalAmount / 100;
+    outstandingAmount :=
+      billsStoreDict[billPayment.BillId].OutstandingAmount / 100;
+    tippedAmount := billsStoreDict[billPayment.BillId].tippedAmount / 100;
+
     frmActions.richEdtFlow.Lines.Add('Updated Bill: ' +
       billsStoreDict[billPayment.BillId].BillId + ' - Table:$' +
       billsStoreDict[billPayment.BillId].TableId + ' Total:$' +
-      IntToStr(billsStoreDict[billPayment.BillId].TotalAmount div 100) +
-      ' Outstanding:$' +
-      IntToStr(billsStoreDict[billPayment.BillId].OutstandingAmount div 100) +
-      ' Tips:$' +
-      IntToStr(billsStoreDict[billPayment.BillId].tippedAmount div 100));
+      CurrToStr(totalAmount) + ' Outstanding:$' + CurrToStr(outstandingAmount) +
+      ' Tips:$' + CurrToStr(tippedAmount));
 
     if(not assemblyBillDataStoreDict.ContainsKey(billPayment.BillId)) Then
     begin
