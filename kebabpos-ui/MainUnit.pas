@@ -751,9 +751,23 @@ begin
       case Spi.CurrentFlow of
         SpiFlow_Idle:
           begin
-            if (Assigned(frmActions)) then
+            if Assigned(frmActions) then
+            begin
               frmActions.lblFlowMessage.Caption := 'Unpaired';
-            exit;
+              frmActions.btnAction1.Visible := True;
+              frmActions.btnAction1.Caption := 'OK-Unpaired';
+              frmActions.btnAction2.Visible := False;
+              frmActions.btnAction3.Visible := False;
+              frmActions.lblAmount.Visible := False;
+              frmActions.lblTipAmount.Visible := False;
+              frmActions.lblCashoutAmount.Visible := False;
+              frmActions.lblPrompt.Visible := False;
+              frmActions.edtAmount.Visible := False;
+              frmActions.edtTipAmount.Visible := False;
+              frmActions.edtCashoutAmount.Visible := False;
+              frmActions.radioPrompt.Visible := False;
+              exit;
+            end;
           end;
         SpiFlow_Pairing:
           begin
