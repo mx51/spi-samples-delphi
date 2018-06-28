@@ -1019,6 +1019,12 @@ procedure TfrmMain.btnPairClick(Sender: TObject);
 begin
   if (btnPair.Caption = 'Pair') then
   begin
+    if (edtPosID.Text = '') or (edtEftposAddress.Text = '') then
+    begin
+      showmessage('Please fill the parameters');
+      exit;
+    end;
+
     _posId := edtPosID.Text;
     _eftposAddress := edtEftposAddress.Text;
     Spi.SetPosId(_posId);
