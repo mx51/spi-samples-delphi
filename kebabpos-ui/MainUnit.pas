@@ -1080,6 +1080,7 @@ begin
   if (not SecretsInited) then
   begin
     frmActions.Show;
+    frmActions.lblFlowMessage.Caption := 'It''s trying to connect';
 
     if (Spi.CurrentFlow = SpiFlow_Idle) then
       frmActions.richEdtFlow.Lines.Clear();
