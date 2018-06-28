@@ -577,9 +577,12 @@ begin
   if (not Init) then
   begin
     frmActions.Show;
+    frmActions.lblFlowMessage.Caption := 'It''s trying to connect';
 
     if (Spi.CurrentFlow = SpiFlow_Idle) then
+    begin
       frmActions.richEdtFlow.Lines.Clear();
+    end;
 
     Init := False;
   end;
@@ -761,7 +764,7 @@ begin
   end;
 
   frmActions.Show;
-  frmActions.lblFlowMessage.Caption :=  'Please enter the amount you would like to extend for in cents';
+  frmActions.lblFlowMessage.Caption := 'Please enter the amount you would like to extend for in cents';
   frmActions.btnAction1.Visible := True;
   frmActions.btnAction1.Caption := 'Extend';
   frmActions.btnAction2.Visible := True;
@@ -808,7 +811,7 @@ begin
   end;
 
   frmActions.Show;
-  frmActions.lblFlowMessage.Caption :=  'Please enter the amount you would like to top down for in cents';
+  frmActions.lblFlowMessage.Caption := 'Please enter the amount you would like to top down for in cents';
   frmActions.btnAction1.Visible := True;
   frmActions.btnAction1.Caption := 'Top Down';
   frmActions.btnAction2.Visible := True;
@@ -832,7 +835,7 @@ begin
   end;
 
   frmActions.Show;
-  frmActions.lblFlowMessage.Caption :=  'Please enter the amount you would like to complete for in cents';
+  frmActions.lblFlowMessage.Caption := 'Please enter the amount you would like to complete for in cents';
   frmActions.btnAction1.Visible := True;
   frmActions.btnAction1.Caption := 'Complete';
   frmActions.btnAction2.Visible := True;
