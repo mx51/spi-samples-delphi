@@ -142,6 +142,19 @@ begin
     frmMain.edtEftposAddress.Enabled := True;
     Hide;
   end
+  else if (btnAction1.Caption = 'OK-Unpaired') then
+  begin
+    Spi.AckFlowEndedAndBackToIdle;
+    frmActions.richEdtFlow.Lines.Clear;
+    frmMain.Enabled := True;
+    frmMain.btnPair.Enabled := True;
+    frmMain.edtPosID.Enabled := True;
+    frmMain.edtEftposAddress.Enabled := True;
+    frmMain.btnPair.Caption := 'Pair';
+    frmMain.pnlActions.Visible := False;
+    frmMain.lblStatus.Color := clRed;
+    Hide;
+  end
   else if (btnAction1.Caption = 'Accept Signature') then
   begin
     Spi.AcceptSignature(True);
