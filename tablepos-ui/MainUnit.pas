@@ -28,6 +28,8 @@ type
     pnlOtherActions: TPanel;
     radioReceipt: TRadioGroup;
     radioSign: TRadioGroup;
+    btnListTables: TButton;
+    btnGetBill: TButton;
     procedure btnPairClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -38,6 +40,8 @@ type
     procedure btnCloseClick(Sender: TObject);
     procedure btnAddClick(Sender: TObject);
     procedure btnPrintBillClick(Sender: TObject);
+    procedure btnListTablesClick(Sender: TObject);
+    procedure btnGetBillClick(Sender: TObject);
   private
 
   public
@@ -45,7 +49,8 @@ type
     procedure OpenTable;
     procedure CloseTable;
     procedure AddToTable;
-    procedure PrintBill;
+    procedure PrintBill(billId: WideString);
+    procedure GetBill;
   end;
 
 type
@@ -218,7 +223,8 @@ begin
       while not Eof(assemblyBillDataStoreFile) do
       begin
         Read(assemblyBillDataStoreFile, assemblyBillDataStore);
-        assemblyBillDataStoreDict.Add(assemblyBillDataStore.BillId, assemblyBillDataStore.BillData);
+        assemblyBillDataStoreDict.Add(assemblyBillDataStore.BillId,
+          assemblyBillDataStore.BillData);
       end;
       CloseFile(assemblyBillDataStoreFile);
     end;
@@ -410,17 +416,24 @@ begin
         case txFlowState.type_ of
           TransactionType_Purchase:
           begin
-            frmActions.richEdtFlow.Lines.Add('# WE''RE NOT QUITE SURE WHETHER WE GOT PAID OR NOT :/');
-            frmActions.richEdtFlow.Lines.Add('# CHECK THE LAST TRANSACTION ON THE EFTPOS ITSELF FROM THE APPROPRIATE MENU ITEM.');
-            frmActions.richEdtFlow.Lines.Add('# IF YOU CONFIRM THAT THE CUSTOMER PAID, CLOSE THE ORDER.');
-            frmActions.richEdtFlow.Lines.Add('# OTHERWISE, RETRY THE PAYMENT FROM SCRATCH.');
+            frmActions.richEdtFlow.Lines.Add(
+              '# WE''RE NOT QUITE SURE WHETHER WE GOT PAID OR NOT :/');
+            frmActions.richEdtFlow.Lines.Add(
+              '# CHECK THE LAST TRANSACTION ON THE EFTPOS ITSELF FROM THE APPROPRIATE MENU ITEM.');
+            frmActions.richEdtFlow.Lines.Add(
+              '# IF YOU CONFIRM THAT THE CUSTOMER PAID, CLOSE THE ORDER.');
+            frmActions.richEdtFlow.Lines.Add(
+              '# OTHERWISE, RETRY THE PAYMENT FROM SCRATCH.');
           end;
 
           TransactionType_Refund:
           begin
-            frmActions.richEdtFlow.Lines.Add('# WE''RE NOT QUITE SURE WHETHER THE REFUND WENT THROUGH OR NOT :/');
-            frmActions.richEdtFlow.Lines.Add('# CHECK THE LAST TRANSACTION ON THE EFTPOS ITSELF FROM THE APPROPRIATE MENU ITEM.');
-            frmActions.richEdtFlow.Lines.Add('# YOU CAN THE TAKE THE APPROPRIATE ACTION.');
+            frmActions.richEdtFlow.Lines.Add(
+              '# WE''RE NOT QUITE SURE WHETHER THE REFUND WENT THROUGH OR NOT :/');
+            frmActions.richEdtFlow.Lines.Add(
+              '# CHECK THE LAST TRANSACTION ON THE EFTPOS ITSELF FROM THE APPROPRIATE MENU ITEM.');
+            frmActions.richEdtFlow.Lines.Add(
+              '# YOU CAN THE TAKE THE APPROPRIATE ACTION.');
           end;
         end;
       end;
@@ -973,6 +986,107 @@ begin
   frmMain.Enabled := False;
 end;
 
+procedure TfrmMain.btnGetBillClick(Sender: TObject);
+begin
+  if (not Assigned(frmActions)) then
+  begin
+    frmActions := frmActions.Create(frmMain, Spi);
+    frmActions.PopupParent := frmMain;
+    frmMain.Enabled := False;
+  end;
+
+  frmActions.Show;
+  frmActions.richEdtFlow.Lines.Clear();
+  frmActions.lblFlowMessage.Caption :=
+    'Please enter the table id you would like to print bill for in cents';
+  frmActions.btnAction1.Visible := True;
+  frmActions.btnAction1.Caption := 'Get Bill';
+  frmActions.btnAction2.Visible := True;
+  frmActions.btnAction2.Caption := 'Cancel';
+  frmActions.btnAction3.Visible := False;
+  frmActions.lblAmount.Visible := False;
+  frmActions.edtAmount.Visible := False;
+  frmActions.lblTableId.Visible := True;
+  frmActions.lblTableId.Caption := 'Table Id:';
+  frmActions.edtTableId.Visible := True;
+  frmActions.edtTableId.Text := '';
+  frmMain.Enabled := False;
+end;
+
+procedure TfrmMain.btnListTablesClick(Sender: TObject);
+var
+  i: Integer;
+  openTables, openBills, openAssemblyBill: WideString;
+  Key: WideString;
+begin
+  if (not Assigned(frmActions)) then
+  begin
+    frmActions := frmActions.Create(frmMain, Spi);
+    frmActions.PopupParent := frmMain;
+    frmMain.Enabled := False;
+  end;
+
+  frmActions.Show;
+  frmActions.richEdtFlow.Lines.Clear();
+  frmActions.lblFlowMessage.Caption := 'List of Tables';
+  frmActions.btnAction1.Visible := True;
+  frmActions.btnAction1.Caption := 'OK';
+  frmActions.btnAction2.Visible := False;
+  frmActions.btnAction3.Visible := False;
+  frmActions.lblAmount.Visible := False;
+  frmActions.edtAmount.Visible := False;
+  frmActions.lblTableId.Visible := False;
+  frmActions.edtTableId.Visible := False;
+  frmMain.Enabled := False;
+
+  if (tableToBillMappingDict.Count > 0) then
+  begin
+    for Key in tableToBillMappingDict.Keys do
+    begin
+      if (openTables <> '') then
+      begin
+        openTables := opentables + ',';
+      end;
+
+      openTables := openTables + Key;
+    end;
+    frmActions.richEdtFlow.Lines.Add('#    Open Tables: ' + openTables);
+  end
+  else
+  begin
+    frmActions.richEdtFlow.Lines.Add('# No Open Tables.');
+  end;
+
+  if (billsStoreDict.Count > 0) then
+  begin
+    for Key in billsStoreDict.Keys do
+    begin
+      if (openBills <> '') then
+      begin
+        openBills := openBills + ',';
+      end;
+
+      openBills := openBills + Key;
+    end;
+    frmActions.richEdtFlow.Lines.Add('# My Bills Store: ' + openBills);
+  end;
+
+  if (assemblyBillDataStoreDict.Count > 0) then
+  begin
+    for Key in assemblyBillDataStoreDict.Keys do
+    begin
+      if (openAssemblyBill <> '') then
+      begin
+        openAssemblyBill := openAssemblyBill + ',';
+      end;
+
+      openAssemblyBill := openAssemblyBill + Key;
+    end;
+    frmActions.richEdtFlow.Lines.Add('# Assembly Bills Data: ' +
+      openAssemblyBill);
+  end;
+end;
+
 procedure TfrmMain.btnAddClick(Sender: TObject);
 begin
   if (not Assigned(frmActions)) then
@@ -995,6 +1109,7 @@ begin
   frmActions.edtAmount.Visible := True;
   frmActions.lblTableId.Visible := True;
   frmActions.lblTableId.Caption := 'Table Id:';
+  frmActions.edtTableId.Text := '';
   frmActions.edtTableId.Visible := True;
   frmActions.edtTableId.Text := '';
   frmMain.Enabled := False;
@@ -1012,18 +1127,18 @@ begin
   frmActions.Show;
   frmActions.richEdtFlow.Lines.Clear();
   frmActions.lblFlowMessage.Caption :=
-    'Please enter the table id you would like to print bill for in cents';
+    'Please enter the bill id you would like to print bill for in cents';
   frmActions.btnAction1.Visible := True;
   frmActions.btnAction1.Caption := 'Print Bill';
   frmActions.btnAction2.Visible := True;
   frmActions.btnAction2.Caption := 'Cancel';
   frmActions.btnAction3.Visible := False;
-  frmActions.lblAmount.Visible := True;
-  frmActions.edtAmount.Visible := True;
-  frmActions.edtAmount.Text := '0';
+  frmActions.lblAmount.Visible := False;
+  frmActions.edtAmount.Visible := False;
   frmActions.lblTableId.Visible := True;
   frmActions.lblTableId.Caption := 'Bill Id:';
   frmActions.edtTableId.Visible := True;
+  frmActions.edtTableId.Text := '';
   frmMain.Enabled := False;
 end;
 
@@ -1088,7 +1203,8 @@ begin
 
   frmActions.Show;
   frmActions.richEdtFlow.Lines.Clear();
-  frmActions.lblFlowMessage.Caption :=  'Please enter the amount you would like to purchase for in cents';
+  frmActions.lblFlowMessage.Caption :=
+    'Please enter the amount you would like to purchase for in cents';
   frmActions.btnAction1.Visible := True;
   frmActions.btnAction1.Caption := 'Purchase';
   frmActions.btnAction2.Visible := True;
@@ -1277,20 +1393,49 @@ begin
   frmMain.Enabled := False;
 end;
 
-procedure TfrmMain.PrintBill;
-var
-  billId: WideString;
+procedure TfrmMain.PrintBill(billId: WideString);
 begin
   frmActions.richEdtFlow.Lines.Clear();
-  billId := frmActions.edtTableId.Text;
+  if (billId = '') then
+  begin
+    billId := frmActions.edtTableId.Text;
+  end;
+
   if (not billsStoreDict.ContainsKey(billId)) then
   begin
     frmActions.richEdtFlow.Lines.Add('Bill not Open.');
   end
   else
   begin
-    frmActions.richEdtFlow.Lines.Add('Updated: ' +
+    frmActions.richEdtFlow.Lines.Add('Bill: ' +
       BillToString(billsStoreDict[billId]));
+  end;
+
+  frmActions.Show;
+  frmActions.btnAction1.Visible := True;
+  frmActions.btnAction1.Caption := 'OK';
+  frmActions.btnAction2.Visible := False;
+  frmActions.btnAction3.Visible := False;
+  frmActions.lblAmount.Visible := False;
+  frmActions.edtAmount.Visible := False;
+  frmActions.lblTableId.Visible := False;
+  frmActions.edtTableId.Visible := False;
+  frmMain.Enabled := False;
+end;
+
+procedure TfrmMain.GetBill;
+var
+  tableId: WideString;
+begin
+  frmActions.richEdtFlow.Lines.Clear();
+  tableId := frmActions.edtTableId.Text;
+  if (not tableToBillMappingDict.ContainsKey(tableId)) then
+  begin
+    frmActions.richEdtFlow.Lines.Add('Table not Open.');
+  end
+  else
+  begin
+    PrintBill(tableToBillMappingDict[tableId]);
   end;
 
   frmActions.Show;

@@ -207,7 +207,11 @@ begin
   end
   else if (btnAction1.Caption = 'Print Bill') then
   begin
-    frmMain.PrintBill;
+    frmMain.PrintBill('');
+  end
+  else if (btnAction1.Caption = 'Get Bill') then
+  begin
+    frmMain.GetBill;
   end;
 end;
 

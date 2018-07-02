@@ -316,8 +316,8 @@ object frmMain: TfrmMain
       ExplicitWidth = 158
     end
     object btnClose: TButton
-      Left = 60
-      Top = 80
+      Left = 212
+      Top = 40
       Width = 80
       Height = 34
       Caption = 'Close'
@@ -331,7 +331,7 @@ object frmMain: TfrmMain
       OnClick = btnCloseClick
     end
     object btnPrintBill: TButton
-      Left = 155
+      Left = 21
       Top = 80
       Width = 80
       Height = 34
@@ -346,7 +346,7 @@ object frmMain: TfrmMain
       OnClick = btnPrintBillClick
     end
     object btnOpen: TButton
-      Left = 60
+      Left = 21
       Top = 40
       Width = 80
       Height = 34
@@ -361,7 +361,7 @@ object frmMain: TfrmMain
       OnClick = btnOpenClick
     end
     object btnAdd: TButton
-      Left = 155
+      Left = 116
       Top = 40
       Width = 80
       Height = 34
@@ -374,6 +374,36 @@ object frmMain: TfrmMain
       ParentFont = False
       TabOrder = 3
       OnClick = btnAddClick
+    end
+    object btnListTables: TButton
+      Left = 212
+      Top = 80
+      Width = 80
+      Height = 34
+      Caption = 'List Tables'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -16
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 4
+      OnClick = btnListTablesClick
+    end
+    object btnGetBill: TButton
+      Left = 116
+      Top = 80
+      Width = 80
+      Height = 34
+      Caption = 'Get Bill'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -16
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 5
+      OnClick = btnGetBillClick
     end
   end
   object pnlOtherActions: TPanel
