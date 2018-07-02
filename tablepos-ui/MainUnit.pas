@@ -998,7 +998,7 @@ begin
   frmActions.Show;
   frmActions.richEdtFlow.Lines.Clear();
   frmActions.lblFlowMessage.Caption :=
-    'Please enter the table id you would like to print bill for in cents';
+    'Please enter the table id you would like to print bill';
   frmActions.btnAction1.Visible := True;
   frmActions.btnAction1.Caption := 'Get Bill';
   frmActions.btnAction2.Visible := True;
