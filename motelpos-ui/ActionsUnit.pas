@@ -85,8 +85,10 @@ begin
   amount := StrToInt(frmActions.edtAmount.Text);
   initRes := CreateComObject(CLASS_InitiateTxResult)
     AS SPIClient_TLB.InitiateTxResult;
-  initRes := SpiPreauth.InitiateTopupTx('prtopup-' + frmActions.edtPreauthId.Text
-    + '-' + FormatDateTime('dd-mm-yyyy-hh-nn-ss', Now), frmActions.edtPreauthId.Text, amount);
+  initRes := SpiPreauth.InitiateTopupTx('prtopup-' +
+    frmActions.edtPreauthId.Text + '-' +
+    FormatDateTime('dd-mm-yyyy-hh-nn-ss', Now), frmActions.edtPreauthId.Text,
+    amount);
 
   if (initRes.Initiated) then
   begin
@@ -109,7 +111,8 @@ begin
   initRes := CreateComObject(CLASS_InitiateTxResult)
     AS SPIClient_TLB.InitiateTxResult;
   initRes := SpiPreauth.InitiatePartialCancellationTx('prtopd-' +
-    frmActions.edtPreauthId.Text + '-' + FormatDateTime('dd-mm-yyyy-hh-nn-ss', Now), frmActions.edtPreauthId.Text, amount);
+    frmActions.edtPreauthId.Text + '-' + FormatDateTime('dd-mm-yyyy-hh-nn-ss',
+    Now), frmActions.edtPreauthId.Text, amount);
 
   if (initRes.Initiated) then
   begin
@@ -129,8 +132,9 @@ var
 begin
   initRes := CreateComObject(CLASS_InitiateTxResult)
     AS SPIClient_TLB.InitiateTxResult;
-  initRes := SpiPreauth.InitiateExtendTx('prtopd-' + frmActions.edtPreauthId.Text
-    + '-' + FormatDateTime('dd-mm-yyyy-hh-nn-ss', Now), frmActions.edtPreauthId.Text);
+  initRes := SpiPreauth.InitiateExtendTx('prtopd-' +
+    frmActions.edtPreauthId.Text + '-' +
+    FormatDateTime('dd-mm-yyyy-hh-nn-ss', Now), frmActions.edtPreauthId.Text);
 
   if (initRes.Initiated) then
   begin
@@ -152,8 +156,32 @@ begin
   amount := StrToInt(frmActions.edtAmount.Text);
   initRes := CreateComObject(CLASS_InitiateTxResult)
     AS SPIClient_TLB.InitiateTxResult;
-  initRes := SpiPreauth.InitiateCompletionTx('prcomp-' + frmActions.edtPreauthId.Text
-    + '-' + FormatDateTime('dd-mm-yyyy-hh-nn-ss', Now), frmActions.edtPreauthId.Text, amount);
+  initRes := SpiPreauth.InitiateCompletionTx('prcomp-' +
+    frmActions.edtPreauthId.Text + '-' +
+    FormatDateTime('dd-mm-yyyy-hh-nn-ss', Now),
+    frmActions.edtPreauthId.Text, amount);
+
+  if (initRes.Initiated) then
+  begin
+    frmActions.richEdtFlow.Lines.Add(
+      '# Preauth request initiated. Will be updated with Progress.');
+  end
+  else
+  begin
+    frmActions.richEdtFlow.Lines.Add('# Could not initiate preauth request: ' +
+      initRes.Message + '. Please Retry.');
+  end;
+end;
+
+procedure DoCancel;
+var
+  initRes: SPIClient_TLB.InitiateTxResult;
+begin
+  initRes := CreateComObject(CLASS_InitiateTxResult)
+    AS SPIClient_TLB.InitiateTxResult;
+  initRes := SpiPreauth.InitiateCancelTx('prtopd-' +
+    frmActions.edtPreauthId.Text + '-' +
+    FormatDateTime('dd-mm-yyyy-hh-nn-ss', Now), frmActions.edtPreauthId.Text);
 
   if (initRes.Initiated) then
   begin
@@ -259,6 +287,10 @@ begin
   else if (btnAction1.Caption = 'Complete') then
   begin
     DoComplete;
+  end
+  else if (btnAction1.Caption = 'PreAuth Cancel') then
+  begin
+    DoCancel;
   end;
 end;
 

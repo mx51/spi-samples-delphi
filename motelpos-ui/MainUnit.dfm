@@ -4,7 +4,7 @@ object frmMain: TfrmMain
   AutoSize = True
   BorderIcons = [biSystemMenu]
   Caption = 'Motel Delphi Pos'
-  ClientHeight = 498
+  ClientHeight = 530
   ClientWidth = 626
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -237,7 +237,7 @@ object frmMain: TfrmMain
     Left = 313
     Top = 0
     Width = 313
-    Height = 498
+    Height = 530
     BorderStyle = bsSingle
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -269,7 +269,7 @@ object frmMain: TfrmMain
       Left = 0
       Top = 35
       Width = 307
-      Height = 455
+      Height = 486
       Font.Charset = ANSI_CHARSET
       Font.Color = clWindowText
       Font.Height = -11
@@ -286,7 +286,7 @@ object frmMain: TfrmMain
     Left = 0
     Top = 257
     Width = 313
-    Height = 128
+    Height = 160
     BorderStyle = bsSingle
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -405,10 +405,25 @@ object frmMain: TfrmMain
       TabOrder = 5
       OnClick = btnTopUpClick
     end
+    object btnCancel: TButton
+      Left = 117
+      Top = 120
+      Width = 80
+      Height = 34
+      Caption = 'Cancel'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -16
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 6
+      OnClick = btnCancelClick
+    end
   end
   object pnlOtherActions: TPanel
     Left = 0
-    Top = 386
+    Top = 417
     Width = 313
     Height = 112
     BorderStyle = bsSingle
@@ -437,7 +452,8 @@ object frmMain: TfrmMain
       ParentColor = False
       ParentFont = False
       Transparent = False
-      ExplicitWidth = 160
+      ExplicitLeft = 2
+      ExplicitTop = 9
     end
     object lblReference: TLabel
       Left = 1

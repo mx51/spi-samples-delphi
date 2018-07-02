@@ -39,6 +39,7 @@ type
     edtReference: TEdit;
     radioReceipt: TRadioGroup;
     radioSign: TRadioGroup;
+    btnCancel: TButton;
     procedure btnPairClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -50,6 +51,7 @@ type
     procedure btnTopUpClick(Sender: TObject);
     procedure btnCompleteClick(Sender: TObject);
     procedure btnRecoverClick(Sender: TObject);
+    procedure btnCancelClick(Sender: TObject);
   private
 
   public
@@ -120,7 +122,8 @@ begin
   if (Spi.CurrentFlow = SpiFlow_Pairing) then
   begin
     frmActions.richEdtFlow.Lines.Add('### PAIRING PROCESS UPDATE ###');
-    frmActions.richEdtFlow.Lines.Add('# ' + spi.CurrentPairingFlowState.Message);
+    frmActions.richEdtFlow.Lines.Add('# ' +
+      spi.CurrentPairingFlowState.Message);
     frmActions.richEdtFlow.Lines.Add('# Finished? ' +
       BoolToStr(spi.CurrentPairingFlowState.Finished));
     frmActions.richEdtFlow.Lines.Add('# Successful? ' +
@@ -165,7 +168,8 @@ begin
           TransactionType_Preauth:
           begin
             frmActions.richEdtFlow.Lines.Add('# PREAUTH RESULT - SUCCESS');
-            preauthResponse := ComWrapper.PreauthResponseInit(txFlowState.Response);
+            preauthResponse := ComWrapper.PreauthResponseInit(
+              txFlowState.Response);
             frmActions.richEdtFlow.Lines.Add('# PREAUTH-ID: ' +
               preauthResponse.PreauthId);
             frmActions.richEdtFlow.Lines.Add('# NEW BALANCE AMOUNT: ' +
@@ -188,7 +192,8 @@ begin
           TransactionType_AccountVerify:
           begin
             frmActions.richEdtFlow.Lines.Add('# ACCOUNT VERIFICATION SUCCESS');
-            acctVerifyResponse := ComWrapper.AccountVerifyResponseInit(txFlowState.Response);
+            acctVerifyResponse := ComWrapper.AccountVerifyResponseInit(
+              txFlowState.Response);
             details := acctVerifyResponse.Details;
 
             frmActions.richEdtFlow.Lines.Add('# Response: ' +
@@ -223,7 +228,8 @@ begin
               frmActions.richEdtFlow.Lines.Add('# Response: ' +
                 details.GetResponseText);
               frmActions.richEdtFlow.Lines.Add('# RRN: ' + details.GetRRN);
-              frmActions.richEdtFlow.Lines.Add('# Scheme: ' + details.SchemeName);
+              frmActions.richEdtFlow.Lines.Add('# Scheme: ' +
+                details.SchemeName);
               frmActions.richEdtFlow.Lines.Add('# Customer Receipt:');
               frmMain.richEdtReceipt.Lines.Add
                 (TrimLeft(details.GetCustomerReceipt));
@@ -232,7 +238,8 @@ begin
 
           TransactionType_AccountVerify:
           begin
-            frmActions.richEdtFlow.Lines.Add('# ACCOUNT VERIFICATION FAILED :(');
+            frmActions.richEdtFlow.Lines.Add(
+              '# ACCOUNT VERIFICATION FAILED :(');
             frmActions.richEdtFlow.Lines.Add('# Error: ' +
 			        txFlowState.Response.GetError);
             frmActions.richEdtFlow.Lines.Add('# Error Detail: ' +
@@ -240,7 +247,8 @@ begin
 
             if (txFlowState.Response <> nil) then
             begin
-              acctVerifyResponse := ComWrapper.AccountVerifyResponseInit(txFlowState.Response);
+              acctVerifyResponse := ComWrapper.AccountVerifyResponseInit(
+                txFlowState.Response);
               details := acctVerifyResponse.Details;
               frmMain.richEdtReceipt.Lines.Add
                 (TrimLeft(details.GetCustomerReceipt));
@@ -258,23 +266,32 @@ begin
         case txFlowState.type_ of
           TransactionType_Preauth:
           begin
-            frmActions.richEdtFlow.Lines.Add('# WE''RE NOT QUITE SURE WHETHER PREAUTH TRANSACTION WENT THROUGH OR NOT:/');
-            frmActions.richEdtFlow.Lines.Add('# CHECK THE LAST TRANSACTION ON THE EFTPOS ITSELF FROM THE APPROPRIATE MENU ITEM.');
-            frmActions.richEdtFlow.Lines.Add('# IF YOU CONFIRM THAT THE CUSTOMER PAID, CLOSE THE ORDER.');
-            frmActions.richEdtFlow.Lines.Add('# OTHERWISE, RETRY THE PAYMENT FROM SCRATCH.');
+            frmActions.richEdtFlow.Lines.Add(
+              '# WE''RE NOT QUITE SURE WHETHER PREAUTH TRANSACTION WENT THROUGH OR NOT:/');
+            frmActions.richEdtFlow.Lines.Add(
+              '# CHECK THE LAST TRANSACTION ON THE EFTPOS ITSELF FROM THE APPROPRIATE MENU ITEM.');
+            frmActions.richEdtFlow.Lines.Add(
+              '# IF YOU CONFIRM THAT THE CUSTOMER PAID, CLOSE THE ORDER.');
+            frmActions.richEdtFlow.Lines.Add(
+              '# OTHERWISE, RETRY THE PAYMENT FROM SCRATCH.');
           end;
 
           TransactionType_AccountVerify:
           begin
-            frmActions.richEdtFlow.Lines.Add('# WE''RE NOT QUITE SURE WHETHER ACCOUNT VERIFICATION WENT THROUGH OR NOT:/');
-            frmActions.richEdtFlow.Lines.Add('# CHECK THE LAST TRANSACTION ON THE EFTPOS ITSELF FROM THE APPROPRIATE MENU ITEM.');
-            frmActions.richEdtFlow.Lines.Add('# IF YOU CONFIRM THAT THE CUSTOMER PAID, CLOSE THE ORDER.');
-            frmActions.richEdtFlow.Lines.Add('# OTHERWISE, RETRY THE PAYMENT FROM SCRATCH.');
+            frmActions.richEdtFlow.Lines.Add(
+              '# WE''RE NOT QUITE SURE WHETHER ACCOUNT VERIFICATION WENT THROUGH OR NOT:/');
+            frmActions.richEdtFlow.Lines.Add(
+              '# CHECK THE LAST TRANSACTION ON THE EFTPOS ITSELF FROM THE APPROPRIATE MENU ITEM.');
+            frmActions.richEdtFlow.Lines.Add(
+              '# IF YOU CONFIRM THAT THE CUSTOMER PAID, CLOSE THE ORDER.');
+            frmActions.richEdtFlow.Lines.Add(
+              '# OTHERWISE, RETRY THE PAYMENT FROM SCRATCH.');
           end;
 
           else
           begin
-            frmActions.richEdtFlow.Lines.Add('# MOTEL POS DOESN''T KNOW WHAT TO DO WITH THIS TX TYPE WHEN IT''s UNKNOWN');
+            frmActions.richEdtFlow.Lines.Add(
+              '# MOTEL POS DOESN''T KNOW WHAT TO DO WITH THIS TX TYPE WHEN IT''s UNKNOWN');
           end;
         end;
       end;
@@ -716,7 +733,8 @@ begin
   initRes := CreateComObject(CLASS_InitiateTxResult)
     AS SPIClient_TLB.InitiateTxResult;
 
-  initRes := SpiPreauth.InitiateAccountVerifyTx('actvfy-' + FormatDateTime('dd-mm-yyyy-hh-nn-ss', Now));
+  initRes := SpiPreauth.InitiateAccountVerifyTx('actvfy-' + FormatDateTime(
+    'dd-mm-yyyy-hh-nn-ss', Now));
 
   if (initRes.Initiated) then
   begin
@@ -725,8 +743,9 @@ begin
   end
   else
   begin
-    frmActions.richEdtFlow.Lines.Add('# Could not initiate account verify request: ' +
-      initRes.Message + '. Please Retry.');
+    frmActions.richEdtFlow.Lines.Add(
+      '# Could not initiate account verify request: ' + initRes.Message +
+      '. Please Retry.');
   end;
 end;
 
@@ -740,7 +759,8 @@ begin
   end;
 
   frmActions.Show;
-  frmActions.lblFlowMessage.Caption := 'Please enter the amount you would like to open for in cents';
+  frmActions.lblFlowMessage.Caption :=
+    'Please enter the amount you would like to open for in cents';
   frmActions.btnAction1.Visible := True;
   frmActions.btnAction1.Caption := 'Open';
   frmActions.btnAction2.Visible := True;
@@ -764,7 +784,8 @@ begin
   end;
 
   frmActions.Show;
-  frmActions.lblFlowMessage.Caption := 'Please enter the amount you would like to extend for in cents';
+  frmActions.lblFlowMessage.Caption :=
+    'Please enter the table id you would like to extend';
   frmActions.btnAction1.Visible := True;
   frmActions.btnAction1.Caption := 'Extend';
   frmActions.btnAction2.Visible := True;
@@ -787,7 +808,8 @@ begin
   end;
 
   frmActions.Show;
-  frmActions.lblFlowMessage.Caption := 'Please enter the amount you would like to top up for in cents';
+  frmActions.lblFlowMessage.Caption :=
+    'Please enter the amount you would like to top up for in cents';
   frmActions.btnAction1.Visible := True;
   frmActions.btnAction1.Caption := 'Top Up';
   frmActions.btnAction2.Visible := True;
@@ -811,7 +833,8 @@ begin
   end;
 
   frmActions.Show;
-  frmActions.lblFlowMessage.Caption := 'Please enter the amount you would like to top down for in cents';
+  frmActions.lblFlowMessage.Caption :=
+    'Please enter the amount you would like to top down for in cents';
   frmActions.btnAction1.Visible := True;
   frmActions.btnAction1.Caption := 'Top Down';
   frmActions.btnAction2.Visible := True;
@@ -821,6 +844,30 @@ begin
   frmActions.lblPreauthId.Visible := True;
   frmActions.edtAmount.Visible := True;
   frmActions.edtAmount.Text := '0';
+  frmActions.edtPreauthId.Visible := True;
+  frmMain.Enabled := False;
+end;
+
+procedure TfrmMain.btnCancelClick(Sender: TObject);
+begin
+  if (not Assigned(frmActions)) then
+  begin
+    frmActions := frmActions.Create(frmMain, Spi);
+    frmActions.PopupParent := frmMain;
+    frmMain.Enabled := False;
+  end;
+
+  frmActions.Show;
+  frmActions.lblFlowMessage.Caption :=
+    'Please enter the table id you would like to cancel';
+  frmActions.btnAction1.Visible := True;
+  frmActions.btnAction1.Caption := 'PreAuth Cancel';
+  frmActions.btnAction2.Visible := True;
+  frmActions.btnAction2.Caption := 'Cancel';
+  frmActions.btnAction3.Visible := False;
+  frmActions.lblAmount.Visible := False;
+  frmActions.lblPreauthId.Visible := True;
+  frmActions.edtAmount.Visible := False;
   frmActions.edtPreauthId.Visible := True;
   frmMain.Enabled := False;
 end;
@@ -835,7 +882,8 @@ begin
   end;
 
   frmActions.Show;
-  frmActions.lblFlowMessage.Caption := 'Please enter the amount you would like to complete for in cents';
+  frmActions.lblFlowMessage.Caption :=
+    'Please enter the amount you would like to complete for in cents';
   frmActions.btnAction1.Visible := True;
   frmActions.btnAction1.Caption := 'Complete';
   frmActions.btnAction2.Visible := True;
