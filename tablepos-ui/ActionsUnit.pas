@@ -63,7 +63,7 @@ begin
 
   purchase := CreateComObject(CLASS_InitiateTxResult)
     AS SPIClient_TLB.InitiateTxResult;
-  posRefId := 'purchase-' + FormatDateTime('o', Now);
+  posRefId := 'purchase-' + FormatDateTime('dd-mm-yyyy-hh-nn-ss', Now);
   purchase := Spi.InitiatePurchaseTxV2(posRefId, amount, 0, 0, False);
 
   if (purchase.Initiated) then
@@ -141,7 +141,7 @@ begin
     Spi.AckFlowEndedAndBackToIdle;
     frmActions.richEdtFlow.Lines.Clear;
     frmActions.lblFlowMessage.Caption := 'Select from the options below';
-    frmMain.DPrintStatusAndActions;
+    TMyWorkerThread.Create(false);
     frmMain.Enabled := True;
     frmMain.btnPair.Enabled := True;
     frmMain.edtPosID.Enabled := True;
@@ -182,7 +182,7 @@ begin
     begin
       frmActions.lblFlowStatus.Caption :=
         'Retry by selecting from the options below';
-      frmMain.DPrintStatusAndActions;
+      TMyWorkerThread.Create(false);
     end;
   end
   else if (btnAction1.Caption = 'Purchase') then
@@ -230,7 +230,7 @@ begin
   begin
     Spi.AckFlowEndedAndBackToIdle;
     frmActions.richEdtFlow.Lines.Clear;
-    frmMain.DPrintStatusAndActions;
+    TMyWorkerThread.Create(false);
     frmMain.Enabled := True;
     Hide;
   end;

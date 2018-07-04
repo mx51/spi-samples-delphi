@@ -30,6 +30,10 @@ type
     radioSign: TRadioGroup;
     btnListTables: TButton;
     btnGetBill: TButton;
+    btnSecrets: TButton;
+    edtSecrets: TEdit;
+    lblSecrets: TLabel;
+    btnSave: TButton;
     procedure btnPairClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -42,10 +46,11 @@ type
     procedure btnPrintBillClick(Sender: TObject);
     procedure btnListTablesClick(Sender: TObject);
     procedure btnGetBillClick(Sender: TObject);
+    procedure btnSecretsClick(Sender: TObject);
+    procedure btnSaveClick(Sender: TObject);
   private
 
   public
-    procedure DPrintStatusAndActions;
     procedure OpenTable;
     procedure CloseTable;
     procedure AddToTable;
@@ -90,9 +95,9 @@ var
   frmActions: TfrmActions;
   ComWrapper: SPIClient_TLB.ComWrapper;
   Spi: SPIClient_TLB.Spi;
-  _posId, _eftposAddress, EncKey, HmacKey: WideString;
+  _posId, _eftposAddress: WideString;
   SpiSecrets: SPIClient_TLB.Secrets;
-  UseSynchronize, UseQueue, Init: Boolean;
+  UseSynchronize, UseQueue: Boolean;
   SpiPayAtTable: SPIClient_TLB.SpiPayAtTable;
   billsStoreDict: TDictionary<WideString, TBill>;
   tableToBillMappingDict: TDictionary<WideString, Widestring>;
@@ -113,6 +118,14 @@ begin
   Result := newBill.BillId + ' - Table:' + newBill.TableId + 'Total:$' +
     CurrToStr(totalAmount) + ' Outstanding:$' +
     CurrToStr(outstandingAmount) + ' Tips:$' + CurrToStr(tippedAmount);
+end;
+
+procedure Split(Delimiter: Char; Str: string; ListOfStrings: TStrings) ;
+begin
+   ListOfStrings.Clear;
+   ListOfStrings.Delimiter       := Delimiter;
+   ListOfStrings.StrictDelimiter := True; // Requires D2006 or newer.
+   ListOfStrings.DelimitedText   := Str;
 end;
 
 function FormExists(apForm: TForm): boolean;
@@ -140,35 +153,38 @@ var
   tableToBillMappingRecordItem: TPair<WideString, WideString>;
   assemblyBillDataRecordItem: TPair<WideString, WideString>;
 begin
-  AssignFile(billsStoreFile, 'billsStore.bin');
-  ReWrite(billsStoreFile);
-  for billRecordItem in billsStoreDict do
+  if (billsStoreDict <> nil) Then
   begin
-    billRecord.BillId := billRecordItem.Key;
-    billRecord.Bill := billRecordItem.Value;
-    Write(billsStoreFile, billRecord);
-  end;
-  CloseFile(billsStoreFile);
+    AssignFile(billsStoreFile, 'billsStore.bin');
+    ReWrite(billsStoreFile);
+    for billRecordItem in billsStoreDict do
+    begin
+      billRecord.BillId := billRecordItem.Key;
+      billRecord.Bill := billRecordItem.Value;
+      Write(billsStoreFile, billRecord);
+    end;
+    CloseFile(billsStoreFile);
 
-  AssignFile(tableToBillMappingFile, 'tableToBillMapping.bin');
-  ReWrite(tableToBillMappingFile);
-  for tableToBillMappingRecordItem in tableToBillMappingDict do
-  begin
-    tableToBillMappingRecord.TableId := tableToBillMappingRecordItem.Key;
-    tableToBillMappingRecord.BillId := tableToBillMappingRecordItem.Value;
-    Write(tableToBillMappingFile, tableToBillMappingRecord);
-  end;
-  CloseFile(tableToBillMappingFile);
+    AssignFile(tableToBillMappingFile, 'tableToBillMapping.bin');
+    ReWrite(tableToBillMappingFile);
+    for tableToBillMappingRecordItem in tableToBillMappingDict do
+    begin
+      tableToBillMappingRecord.TableId := tableToBillMappingRecordItem.Key;
+      tableToBillMappingRecord.BillId := tableToBillMappingRecordItem.Value;
+      Write(tableToBillMappingFile, tableToBillMappingRecord);
+    end;
+    CloseFile(tableToBillMappingFile);
 
-  AssignFile(assemblyBillDataStoreFile, 'assemblyBillDataStore.bin');
-  ReWrite(assemblyBillDataStoreFile);
-  for assemblyBillDataRecordItem in assemblyBillDataStoreDict do
-  begin
-    assemblyBillDataRecord.BillId := assemblyBillDataRecordItem.Key;
-    assemblyBillDataRecord.BillData:= assemblyBillDataRecordItem.Value;
-    Write(assemblyBillDataStoreFile, assemblyBillDataRecord);
+    AssignFile(assemblyBillDataStoreFile, 'assemblyBillDataStore.bin');
+    ReWrite(assemblyBillDataStoreFile);
+    for assemblyBillDataRecordItem in assemblyBillDataStoreDict do
+    begin
+      assemblyBillDataRecord.BillId := assemblyBillDataRecordItem.Key;
+      assemblyBillDataRecord.BillData:= assemblyBillDataRecordItem.Value;
+      Write(assemblyBillDataStoreFile, assemblyBillDataRecord);
+    end;
+    CloseFile(assemblyBillDataStoreFile);
   end;
-  CloseFile(assemblyBillDataStoreFile);
 end;
 
 procedure LoadPersistedState;
@@ -179,20 +195,18 @@ var
   billsStore: TBillsStore;
   tableToBillMapping: TTableToBillMapping;
   assemblyBillDataStore: TAssemblyBillDataStore;
+  OutPutList: TStringList;
 begin
-  Init := False;
-  _posId := 'DELPHIPOS';
 
   billsStoreDict := TDictionary<WideString, TBill>.Create;
   tableToBillMappingDict := TDictionary<WideString, WideString>.Create;
   assemblyBillDataStoreDict := TDictionary<WideString, WideString>.Create;
 
-  frmMain.edtPosID.Text := _posId;
-  frmMain.edtEftposAddress.Text := _eftposAddress;
-  if (EncKey <> '') and (HmacKey <> '') then
+  if (frmMain.edtSecrets.Text <> '') then
   begin
-    SpiSecrets := ComWrapper.SecretsInit(EncKey, HmacKey);
-    Init := True;
+    OutPutList := TStringList.Create;
+    Split(':', frmMain.edtSecrets.Text, OutPutList);
+    SpiSecrets := ComWrapper.SecretsInit(OutPutList[0], OutPutList[1]);
 
     if (FileExists('tableToBillMapping.bin')) then
     begin
@@ -208,7 +222,7 @@ begin
 
       AssignFile(tableToBillMappingFile, 'tableToBillMapping.bin');
       FileMode := fmOpenRead;
-      Reset(billsStoreFile);
+      Reset(tableToBillMappingFile);
       while not Eof(tableToBillMappingFile) do
       begin
         Read(tableToBillMappingFile, tableToBillMapping);
@@ -219,7 +233,7 @@ begin
 
       AssignFile(assemblyBillDataStoreFile, 'assemblyBillDataStore.bin');
       FileMode := fmOpenRead;
-      Reset(billsStoreFile);
+      Reset(assemblyBillDataStoreFile);
       while not Eof(assemblyBillDataStoreFile) do
       begin
         Read(assemblyBillDataStoreFile, assemblyBillDataStore);
@@ -231,7 +245,7 @@ begin
   end;
 end;
 
-procedure PrintFlowInfo(txFlowState: SPIClient_TLB.TransactionFlowState);
+procedure PrintFlowInfo;
 var
   purchaseResponse: SPIClient_TLB.PurchaseResponse;
   refundResponse: SPIClient_TLB.RefundResponse;
@@ -245,11 +259,9 @@ begin
   settleResponse := CreateComObject(CLASS_Settlement)
     AS SPIClient_TLB.Settlement;
 
-  frmActions.richEdtFlow.Lines.Clear;
-  frmActions.lblFlowMessage.Caption := txFlowState.DisplayMessage;
-
   if (Spi.CurrentFlow = SpiFlow_Pairing) then
   begin
+    frmActions.lblFlowMessage.Caption := spi.CurrentPairingFlowState.Message;
     frmActions.richEdtFlow.Lines.Add('### PAIRING PROCESS UPDATE ###');
     frmActions.richEdtFlow.Lines.Add('# ' +
       spi.CurrentPairingFlowState.Message);
@@ -267,33 +279,36 @@ begin
 
   if (Spi.CurrentFlow = SpiFlow_Transaction) then
   begin
+    frmActions.lblFlowMessage.Caption := Spi.CurrentTxFlowState.DisplayMessage;
     frmActions.richEdtFlow.Lines.Add('### TX PROCESS UPDATE ###');
-    frmActions.richEdtFlow.Lines.Add('# ' + txFlowState.DisplayMessage);
-    frmActions.richEdtFlow.Lines.Add('# Id: ' + txFlowState.PosRefId);
+    frmActions.richEdtFlow.Lines.Add('# ' +
+      Spi.CurrentTxFlowState.DisplayMessage);
+    frmActions.richEdtFlow.Lines.Add('# Id: ' +
+      Spi.CurrentTxFlowState.PosRefId);
     frmActions.richEdtFlow.Lines.Add('# Type: ' +
-      ComWrapper.GetTransactionTypeEnumName(txFlowState.type_));
-    amountCents := txFlowState.amountCents / 100;
+      ComWrapper.GetTransactionTypeEnumName(Spi.CurrentTxFlowState.type_));
+    amountCents := Spi.CurrentTxFlowState.amountCents / 100;
     frmActions.richEdtFlow.Lines.Add('# Request Amount: ' +
       CurrToStr(amountCents));
     frmActions.richEdtFlow.Lines.Add('# Waiting For Signature: ' +
-      BoolToStr(txFlowState.AwaitingSignatureCheck));
+      BoolToStr(Spi.CurrentTxFlowState.AwaitingSignatureCheck));
     frmActions.richEdtFlow.Lines.Add('# Attempting to Cancel : ' +
-      BoolToStr(txFlowState.AttemptingToCancel));
+      BoolToStr(Spi.CurrentTxFlowState.AttemptingToCancel));
     frmActions.richEdtFlow.Lines.Add('# Finished: ' +
-      BoolToStr(txFlowState.Finished));
+      BoolToStr(Spi.CurrentTxFlowState.Finished));
     frmActions.richEdtFlow.Lines.Add('# Success: ' +
-      ComWrapper.GetSuccessStateEnumName(txFlowState.Success));
+      ComWrapper.GetSuccessStateEnumName(Spi.CurrentTxFlowState.Success));
 
-    If (txFlowState.Finished) then
+    If (Spi.CurrentTxFlowState.Finished) then
     begin
-      case txFlowState.Success of
+      case Spi.CurrentTxFlowState.Success of
         SuccessState_Success:
-        case txFlowState.type_ of
+        case Spi.CurrentTxFlowState.type_ of
           TransactionType_Purchase:
           begin
             frmActions.richEdtFlow.Lines.Add('# WOOHOO - WE GOT PAID!');
             purchaseResponse := ComWrapper.PurchaseResponseInit(
-              txFlowState.Response);
+              Spi.CurrentTxFlowState.Response);
             frmActions.richEdtFlow.Lines.Add('# Response: ' +
               purchaseResponse.GetResponseText);
             frmActions.richEdtFlow.Lines.Add('# RRN: ' +
@@ -320,7 +335,7 @@ begin
           begin
             frmActions.richEdtFlow.Lines.Add('# REFUND GIVEN- OH WELL!');
             refundResponse := ComWrapper.RefundResponseInit(
-              txFlowState.Response);
+              Spi.CurrentTxFlowState.Response);
             frmActions.richEdtFlow.Lines.Add('# Response: ' +
               refundResponse.GetResponseText);
             frmActions.richEdtFlow.Lines.Add('# RRN: ' +
@@ -336,10 +351,10 @@ begin
           begin
             frmActions.richEdtFlow.Lines.Add('# SETTLEMENT SUCCESSFUL!');
 
-            if (txFlowState.Response <> nil) then
+            if (Spi.CurrentTxFlowState.Response <> nil) then
             begin
               settleResponse := ComWrapper.SettlementInit(
-                txFlowState.Response);
+                Spi.CurrentTxFlowState.Response);
               frmActions.richEdtFlow.Lines.Add('# Response: ' +
                 settleResponse.GetResponseText);
               frmActions.richEdtFlow.Lines.Add('# Merchant Receipt:');
@@ -350,16 +365,16 @@ begin
         end;
 
         SuccessState_Failed:
-        case txFlowState.type_ of
+        case Spi.CurrentTxFlowState.type_ of
           TransactionType_Purchase:
           begin
             frmActions.richEdtFlow.Lines.Add('# WE DID NOT GET PAID :(');
-            if (txFlowState.Response <> nil) then
+            if (Spi.CurrentTxFlowState.Response <> nil) then
             begin
               purchaseResponse := ComWrapper.PurchaseResponseInit(
-                txFlowState.Response);
+                Spi.CurrentTxFlowState.Response);
               frmActions.richEdtFlow.Lines.Add('# Error: ' +
-                txFlowState.Response.GetError);
+                Spi.CurrentTxFlowState.Response.GetError);
               frmActions.richEdtFlow.Lines.Add('# Response: ' +
                 purchaseResponse.GetResponseText);
               frmActions.richEdtFlow.Lines.Add('# RRN: ' +
@@ -375,12 +390,12 @@ begin
           TransactionType_Refund:
           begin
             frmActions.richEdtFlow.Lines.Add('# REFUND FAILED!');
-            if (txFlowState.Response <> nil) then
+            if (Spi.CurrentTxFlowState.Response <> nil) then
             begin
               frmActions.richEdtFlow.Lines.Add('# Error: ' +
-                txFlowState.Response.GetError);
+                Spi.CurrentTxFlowState.Response.GetError);
               refundResponse := ComWrapper.RefundResponseInit(
-                txFlowState.Response);
+                Spi.CurrentTxFlowState.Response);
               frmActions.richEdtFlow.Lines.Add('# Response: ' +
                 refundResponse.GetResponseText);
               frmActions.richEdtFlow.Lines.Add('# RRN: ' +
@@ -397,14 +412,14 @@ begin
           begin
             frmActions.richEdtFlow.Lines.Add('# SETTLEMENT FAILED!');
 
-            if (txFlowState.Response <> nil) then
+            if (Spi.CurrentTxFlowState.Response <> nil) then
             begin
               settleResponse := ComWrapper.SettlementInit(
-                txFlowState.Response);
+                Spi.CurrentTxFlowState.Response);
               frmActions.richEdtFlow.Lines.Add('# Response: ' +
                 settleResponse.GetResponseText);
               frmActions.richEdtFlow.Lines.Add('# Error: ' +
-                txFlowState.Response.GetError);
+                Spi.CurrentTxFlowState.Response.GetError);
               frmActions.richEdtFlow.Lines.Add('# Merchant Receipt:');
               frmMain.richEdtReceipt.Lines.Add(
                 TrimLeft(settleResponse.GetReceipt));
@@ -413,7 +428,7 @@ begin
         end;
 
         SuccessState_Unknown:
-        case txFlowState.type_ of
+        case Spi.CurrentTxFlowState.type_ of
           TransactionType_Purchase:
           begin
             frmActions.richEdtFlow.Lines.Add(
@@ -548,7 +563,127 @@ begin
         end;
       end;
 
-    SpiStatus_PairedConnecting: exit;
+    SpiStatus_PairedConnecting:
+      case Spi.CurrentFlow of
+        SpiFlow_Idle:
+        begin
+          frmMain.btnPair.Caption := 'UnPair';
+          frmMain.pnlTableActions.Visible := True;
+          frmMain.pnlOtherActions.Visible := True;
+          frmMain.lblStatus.Color := clGreen;
+          frmActions.lblFlowMessage.Caption := '# --> SPI Status Changed: ' +
+            ComWrapper.GetSpiStatusEnumName(spi.CurrentStatus);
+          frmActions.btnAction1.Visible := True;
+          frmActions.btnAction1.Caption := 'OK';
+          frmActions.btnAction2.Visible := False;
+          frmActions.btnAction3.Visible := False;
+          frmActions.lblAmount.Visible := False;
+          frmActions.edtAmount.Visible := False;
+          frmActions.lblTableId.Visible := False;
+          frmActions.edtTableId.Visible := False;
+          exit;
+        end;
+
+        SpiFlow_Transaction:
+        begin
+          if (Spi.CurrentTxFlowState.AwaitingSignatureCheck) then
+          begin
+            frmActions.btnAction1.Visible := True;
+            frmActions.btnAction1.Caption := 'Accept Signature';
+            frmActions.btnAction2.Visible := True;
+            frmActions.btnAction2.Caption := 'Decline Signature';
+            frmActions.btnAction3.Visible := True;
+            frmActions.btnAction3.Caption := 'Cancel';
+            frmActions.lblAmount.Visible := False;
+            frmActions.edtAmount.Visible := False;
+            frmActions.lblTableId.Visible := False;
+            frmActions.edtTableId.Visible := False;
+            exit;
+          end
+          else if (not Spi.CurrentTxFlowState.Finished) then
+          begin
+            frmActions.btnAction1.Visible := True;
+            frmActions.btnAction1.Caption := 'Cancel';
+            frmActions.btnAction2.Visible := False;
+            frmActions.btnAction3.Visible := False;
+            frmActions.lblAmount.Visible := False;
+            frmActions.edtAmount.Visible := False;
+            frmActions.lblTableId.Visible := False;
+            frmActions.edtTableId.Visible := False;
+            exit;
+          end
+          else
+          begin
+            case Spi.CurrentTxFlowState.Success of
+              SuccessState_Success:
+              begin
+                frmActions.btnAction1.Visible := True;
+                frmActions.btnAction1.Caption := 'OK';
+                frmActions.btnAction2.Visible := False;
+                frmActions.btnAction3.Visible := False;
+                frmActions.lblAmount.Visible := False;
+                frmActions.edtAmount.Visible := False;
+                frmActions.lblTableId.Visible := False;
+                frmActions.edtTableId.Visible := False;
+                exit;
+              end;
+
+              SuccessState_Failed:
+              begin
+                frmActions.btnAction1.Visible := True;
+                frmActions.btnAction1.Caption := 'Retry';
+                frmActions.btnAction2.Visible := True;
+                frmActions.btnAction2.Caption := 'Cancel';
+                frmActions.btnAction3.Visible := False;
+                frmActions.lblAmount.Visible := False;
+                frmActions.edtAmount.Visible := False;
+                frmActions.lblTableId.Visible := False;
+                frmActions.edtTableId.Visible := False;
+                exit;
+              end;
+              else
+              begin
+                frmActions.btnAction1.Visible := True;
+                frmActions.btnAction1.Caption := 'OK';
+                frmActions.btnAction2.Visible := False;
+                frmActions.btnAction3.Visible := False;
+                frmActions.lblAmount.Visible := False;
+                frmActions.edtAmount.Visible := False;
+                frmActions.lblTableId.Visible := False;
+                frmActions.edtTableId.Visible := False;
+                exit;
+              end;
+            end;
+          end;
+        end;
+
+        SpiFlow_Pairing:
+        begin
+          frmActions.btnAction1.Visible := True;
+          frmActions.btnAction1.Caption := 'OK';
+          frmActions.btnAction2.Visible := False;
+          frmActions.btnAction3.Visible := False;
+          frmActions.lblAmount.Visible := False;
+          frmActions.edtAmount.Visible := False;
+          frmActions.lblTableId.Visible := False;
+          frmActions.edtTableId.Visible := False;
+          exit;
+        end;
+
+      else
+        frmActions.btnAction1.Visible := True;
+        frmActions.btnAction1.Caption := 'OK';
+        frmActions.btnAction2.Visible := False;
+        frmActions.btnAction3.Visible := False;
+        frmActions.lblAmount.Visible := False;
+        frmActions.edtAmount.Visible := False;
+        frmActions.lblTableId.Visible := False;
+        frmActions.edtTableId.Visible := False;
+        frmActions.richEdtFlow.Lines.Clear;
+        frmActions.richEdtFlow.Lines.Add('# .. Unexpected Flow .. ' +
+          ComWrapper.GetSpiFlowEnumName(Spi.CurrentFlow));
+        exit;
+      end;
 
     SpiStatus_PairedConnected:
       case Spi.CurrentFlow of
@@ -695,11 +830,12 @@ begin
   begin
     frmActions := frmActions.Create(frmMain, Spi);
     frmActions.PopupParent := frmMain;
-      frmMain.Enabled := False;
+    frmMain.Enabled := False;
   end;
 
   frmActions.Show;
-  PrintFlowInfo(e);
+  frmActions.richEdtFlow.Lines.Clear();
+  PrintFlowInfo;
   TMyWorkerThread.Create(false);
 end;
 
@@ -722,6 +858,7 @@ begin
       e.ConfirmationCode);
   end;
 
+  PrintFlowInfo;
   TMyWorkerThread.Create(false);
 end;
 
@@ -734,32 +871,25 @@ procedure SpiStatusChanged(e: SPIClient_TLB.SpiStatusEventArgs); stdcall;
 begin
   if (not Assigned(frmActions)) then
   begin
-    if (not Init) then
-    begin
-      frmActions := TfrmActions.Create(frmMain, Spi);
-      frmActions.PopupParent := frmMain;
-      frmMain.Enabled := False;
-    end;
+    frmActions := TfrmActions.Create(frmMain, Spi);
+    frmActions.PopupParent := frmMain;
+    frmMain.Enabled := False;
   end;
 
-  if (not Init) then
-  begin
-    frmActions.Show;
-    frmActions.lblFlowMessage.Caption := 'It''s trying to connect';
+  frmActions.Show;
+  frmActions.lblFlowMessage.Caption := 'It''s trying to connect';
 
-    if (Spi.CurrentFlow = SpiFlow_Idle) then
-      frmActions.richEdtFlow.Lines.Clear();
+  if (Spi.CurrentFlow = SpiFlow_Idle) then
+    frmActions.richEdtFlow.Lines.Clear();
 
-    Init := False;
-  end;
-
+  PrintFlowInfo;
   TMyWorkerThread.Create(false);
 end;
 
 procedure TMyWorkerThread.Execute;
 begin
   Synchronize(procedure begin
-     PrintStatusAndActions;
+    PrintStatusAndActions;
   end
   );
 end;
@@ -845,12 +975,9 @@ begin
   begin
     if (not Assigned(frmActions)) then
     begin
-      if (not Init) then
-      begin
-        frmActions := TfrmActions.Create(frmMain, Spi);
-        frmActions.PopupParent := frmMain;
-        frmMain.Enabled := False;
-      end;
+      frmActions := TfrmActions.Create(frmMain, Spi);
+      frmActions.PopupParent := frmMain;
+      frmMain.Enabled := False;
     end;
 
     frmActions.richEdtFlow.Lines.Add('# Got a ' +
@@ -904,14 +1031,10 @@ end;
 
 procedure Start;
 begin
-  ComWrapper := CreateComObject(CLASS_ComWrapper) AS SPIClient_TLB.ComWrapper;
-  Spi := CreateComObject(CLASS_Spi) AS SPIClient_TLB.Spi;
-  SpiSecrets := CreateComObject(CLASS_Secrets) AS SPIClient_TLB.Secrets;
-  SpiPayAtTable := CreateComObject(CLASS_SpiPayAtTable)
-    AS SPIClient_TLB.SpiPayAtTable;
-  SpiSecrets := nil;
-
   LoadPersistedState;
+
+  _posId := frmMain.edtPosID.Text;
+  _eftposAddress := frmMain.edtEftposAddress.Text;
 
   Spi := ComWrapper.SpiInit(_posId, _eftposAddress, SpiSecrets);
   SpiPayAtTable := Spi.EnablePayAtTable;
@@ -924,11 +1047,6 @@ begin
 
   Spi.Start;
 
-  TMyWorkerThread.Create(false);
-end;
-
-procedure TfrmMain.DPrintStatusAndActions;
-begin
   TMyWorkerThread.Create(false);
 end;
 
@@ -1107,6 +1225,7 @@ begin
   frmActions.btnAction3.Visible := False;
   frmActions.lblAmount.Visible := True;
   frmActions.edtAmount.Visible := True;
+  frmActions.edtAmount.Text := '0';
   frmActions.lblTableId.Visible := True;
   frmActions.lblTableId.Caption := 'Table Id:';
   frmActions.edtTableId.Text := '';
@@ -1146,32 +1265,21 @@ procedure TfrmMain.btnPairClick(Sender: TObject);
 begin
   if (btnPair.Caption = 'Pair') then
   begin
-    if (edtPosID.Text = '') or (edtEftposAddress.Text = '') then
-    begin
-      showmessage('Please fill the parameters');
-      exit;
-    end;
-
-    _posId := edtPosID.Text;
-    _eftposAddress := edtEftposAddress.Text;
-    Spi.SetPosId(_posId);
-    Spi.SetEftposAddress(_eftposAddress);
+    Spi.Pair;
+    btnSecrets.Visible := True;
     edtPosID.Enabled := False;
     edtEftposAddress.Enabled := False;
     frmMain.lblStatus.Color := clYellow;
-    Spi.Pair;
   end
   else if (btnPair.Caption = 'UnPair') then
   begin
+    Spi.Unpair;
     frmMain.btnPair.Caption := 'Pair';
     frmMain.pnlTableActions.Visible := False;
     frmMain.pnlOtherActions.Visible := False;
+    edtSecrets.Text := '';
     lblStatus.Color := clRed;
-    Spi.Unpair;
   end;
-
-  frmMain.btnPair.Enabled := False;
-  frmMain.Enabled := False;
 end;
 
 procedure TfrmMain.FormClose(Sender: TObject;
@@ -1188,8 +1296,15 @@ end;
 
 procedure TfrmMain.FormCreate(Sender: TObject);
 begin
+  ComWrapper := CreateComObject(CLASS_ComWrapper) AS SPIClient_TLB.ComWrapper;
+  Spi := CreateComObject(CLASS_Spi) AS SPIClient_TLB.Spi;
+  SpiSecrets := CreateComObject(CLASS_Secrets) AS SPIClient_TLB.Secrets;
+  SpiPayAtTable := CreateComObject(CLASS_SpiPayAtTable)
+    AS SPIClient_TLB.SpiPayAtTable;
+  SpiSecrets := nil;
+
+  frmMain.edtPosID.Text := 'DELPHIPOS';
   lblStatus.Color := clRed;
-  Start;
 end;
 
 procedure TfrmMain.btnPurchaseClick(Sender: TObject);
@@ -1238,6 +1353,58 @@ begin
   frmActions.btnAction3.Visible := False;
   frmActions.lblAmount.Visible := True;
   frmActions.edtAmount.Visible := True;
+  frmActions.edtAmount.Text := '0';
+  frmActions.lblTableId.Visible := False;
+  frmActions.edtTableId.Visible := False;
+  frmMain.Enabled := False;
+end;
+
+procedure TfrmMain.btnSaveClick(Sender: TObject);
+begin
+  Start;
+
+  btnSave.Enabled := False;
+  if (edtPosID.Text = '') or (edtEftposAddress.Text = '') then
+  begin
+    showmessage('Please fill the parameters');
+    exit;
+  end;
+
+  Spi.SetPosId(edtPosID.Text);
+  Spi.SetEftposAddress(edtEftposAddress.Text);
+  frmMain.pnlStatus.Visible := True;
+end;
+
+procedure TfrmMain.btnSecretsClick(Sender: TObject);
+begin
+  if (not Assigned(frmActions)) then
+  begin
+    frmActions := frmActions.Create(frmMain, Spi);
+    frmActions.PopupParent := frmMain;
+    frmMain.Enabled := False;
+  end;
+
+  frmActions.richEdtFlow.Clear;
+
+  if (SpiSecrets <> nil) then
+  begin
+    frmActions.richEdtFlow.Lines.Add('Pos Id: ' + _posId);
+    frmActions.richEdtFlow.Lines.Add('Eftpos Address: ' + _eftposAddress);
+    frmActions.richEdtFlow.Lines.Add('Secrets: ' + SpiSecrets.encKey + ':' +
+      SpiSecrets.hmacKey);
+  end
+  else
+  begin
+    frmActions.richEdtFlow.Lines.Add('I have no secrets!');
+  end;
+
+  frmActions.Show;
+  frmActions.btnAction1.Visible := True;
+  frmActions.btnAction1.Caption := 'OK';
+  frmActions.btnAction2.Visible := False;
+  frmActions.btnAction3.Visible := False;
+  frmActions.lblAmount.Visible := False;
+  frmActions.edtAmount.Visible := False;
   frmActions.lblTableId.Visible := False;
   frmActions.edtTableId.Visible := False;
   frmMain.Enabled := False;
