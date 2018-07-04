@@ -13,12 +13,6 @@ uses
 
 type
   TfrmMain = class(TForm)
-    pnlSettings: TPanel;
-    lblSettings: TLabel;
-    lblPosID: TLabel;
-    edtPosID: TEdit;
-    lblEftposAddress: TLabel;
-    edtEftposAddress: TEdit;
     pnlStatus: TPanel;
     lblStatusHead: TLabel;
     lblStatus: TLabel;
@@ -37,9 +31,21 @@ type
     btnRecover: TButton;
     btnLastTx: TButton;
     edtReference: TEdit;
-    radioReceipt: TRadioGroup;
-    radioSign: TRadioGroup;
     btnCancel: TButton;
+    btnSecrets: TButton;
+    pnlSettings: TPanel;
+    lblSettings: TLabel;
+    lblPosID: TLabel;
+    lblEftposAddress: TLabel;
+    lblReceiptFrom: TLabel;
+    lblSignFrom: TLabel;
+    lblSecrets: TLabel;
+    edtPosID: TEdit;
+    radioSign: TRadioGroup;
+    radioReceipt: TRadioGroup;
+    edtEftposAddress: TEdit;
+    btnSave: TButton;
+    edtSecrets: TEdit;
     procedure btnPairClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -52,10 +58,12 @@ type
     procedure btnCompleteClick(Sender: TObject);
     procedure btnRecoverClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
+    procedure btnSecretsClick(Sender: TObject);
+    procedure btnSaveClick(Sender: TObject);
   private
 
   public
-    procedure DPrintStatusAndActions;
+
   end;
 
 type
@@ -69,14 +77,22 @@ var
   frmActions: TfrmActions;
   ComWrapper: SPIClient_TLB.ComWrapper;
   Spi: SPIClient_TLB.Spi;
-  _posId, _eftposAddress, EncKey, HmacKey: WideString;
+  _posId, _eftposAddress: WideString;
   SpiSecrets: SPIClient_TLB.Secrets;
-  UseSynchronize, UseQueue, Init: Boolean;
+  UseSynchronize, UseQueue: Boolean;
   SpiPreauth: SPIClient_TLB.SpiPreauth;
 
 implementation
 
 {$R *.dfm}
+
+procedure Split(Delimiter: Char; Str: string; ListOfStrings: TStrings) ;
+begin
+   ListOfStrings.Clear;
+   ListOfStrings.Delimiter       := Delimiter;
+   ListOfStrings.StrictDelimiter := True; // Requires D2006 or newer.
+   ListOfStrings.DelimitedText   := Str;
+end;
 
 function FormExists(apForm: TForm): boolean;
 var
@@ -92,35 +108,32 @@ begin
 end;
 
 procedure LoadPersistedState;
+var
+  OutPutList: TStringList;
 begin
-  Init := False;
-  _posId := 'DELPHIPOS';
-
-  frmMain.edtPosID.Text := _posId;
-  frmMain.edtEftposAddress.Text := _eftposAddress;
-  if (EncKey <> '') and (HmacKey <> '') then
+  if (frmMain.edtSecrets.Text <> '') then
   begin
-    SpiSecrets := ComWrapper.SecretsInit(EncKey, HmacKey);
-    Init := True;
+    OutPutList := TStringList.Create;
+    Split(':', frmMain.edtSecrets.Text, OutPutList);
+    SpiSecrets := ComWrapper.SecretsInit(OutPutList[0], OutPutList[1]);
   end
 end;
 
-procedure PrintFlowInfo(txFlowState: SPIClient_TLB.TransactionFlowState);
+procedure PrintFlowInfo;
 var
   preauthResponse: SPIClient_TLB.PreauthResponse;
   acctVerifyResponse: SPIClient_TLB.AccountVerifyResponse;
   details: SPIClient_TLB.PurchaseResponse;
+  txFlowState: SPIClient_TLB.TransactionFlowState;
 begin
   preauthResponse := CreateComObject(CLASS_PreauthResponse)
     AS SPIClient_TLB.PreauthResponse;
   acctVerifyResponse := CreateComObject(CLASS_AccountVerifyResponse)
     AS SPIClient_TLB.AccountVerifyResponse;
 
-  frmActions.richEdtFlow.Lines.Clear;
-  frmActions.lblFlowMessage.Caption := txFlowState.DisplayMessage;
-
   if (Spi.CurrentFlow = SpiFlow_Pairing) then
   begin
+    frmActions.lblFlowMessage.Caption := spi.CurrentPairingFlowState.Message;
     frmActions.richEdtFlow.Lines.Add('### PAIRING PROCESS UPDATE ###');
     frmActions.richEdtFlow.Lines.Add('# ' +
       spi.CurrentPairingFlowState.Message);
@@ -138,6 +151,9 @@ begin
 
   if (Spi.CurrentFlow = SpiFlow_Transaction) then
   begin
+    txFlowState := spi.CurrentTxFlowState;
+    frmActions.lblFlowMessage.Caption :=
+      spi.CurrentTxFlowState.DisplayMessage;
     frmActions.richEdtFlow.Lines.Add('### TX PROCESS UPDATE ###');
     frmActions.richEdtFlow.Lines.Add('# ' + txFlowState.DisplayMessage);
     frmActions.richEdtFlow.Lines.Add('# Id: ' + txFlowState.PosRefId);
@@ -399,7 +415,125 @@ begin
         end;
       end;
 
-    SpiStatus_PairedConnecting: exit;
+    SpiStatus_PairedConnecting:
+      case Spi.CurrentFlow of
+        SpiFlow_Idle:
+        begin
+          frmMain.btnPair.Caption := 'UnPair';
+          frmMain.pnlPreAuthActions.Visible := True;
+          frmMain.pnlOtherActions.Visible := True;
+          frmMain.lblStatus.Color := clGreen;
+          frmActions.lblFlowMessage.Caption := '# --> SPI Status Changed: ' +
+            ComWrapper.GetSpiStatusEnumName(spi.CurrentStatus);
+          frmActions.btnAction1.Visible := True;
+          frmActions.btnAction1.Caption := 'OK';
+          frmActions.btnAction2.Visible := False;
+          frmActions.btnAction3.Visible := False;
+          frmActions.lblAmount.Visible := False;
+          frmActions.lblPreauthId.Visible := False;
+          frmActions.edtAmount.Visible := False;
+          frmActions.edtPreauthId.Visible := False;
+          exit;
+        end;
+
+        SpiFlow_Transaction:
+        begin
+          if (Spi.CurrentTxFlowState.AwaitingSignatureCheck) then
+          begin
+            frmActions.btnAction1.Visible := True;
+            frmActions.btnAction1.Caption := 'Accept Signature';
+            frmActions.btnAction2.Visible := True;
+            frmActions.btnAction2.Caption := 'Decline Signature';
+            frmActions.btnAction3.Visible := True;
+            frmActions.btnAction3.Caption := 'Cancel';
+            frmActions.lblAmount.Visible := False;
+            frmActions.lblPreauthId.Visible := False;
+            frmActions.edtAmount.Visible := False;
+            frmActions.edtPreauthId.Visible := False;
+            exit;
+          end
+          else if (not Spi.CurrentTxFlowState.Finished) then
+          begin
+            frmActions.btnAction1.Visible := True;
+            frmActions.btnAction1.Caption := 'Cancel';
+            frmActions.btnAction2.Visible := False;
+            frmActions.btnAction3.Visible := False;
+            frmActions.lblAmount.Visible := False;
+            frmActions.lblPreauthId.Visible := False;
+            frmActions.edtAmount.Visible := False;
+            frmActions.edtPreauthId.Visible := False;
+            exit;
+          end
+          else
+          begin
+            case Spi.CurrentTxFlowState.Success of
+              SuccessState_Success:
+              begin
+                frmActions.btnAction1.Visible := True;
+                frmActions.btnAction1.Caption := 'OK';
+                frmActions.btnAction2.Visible := False;
+                frmActions.btnAction3.Visible := False;
+                frmActions.lblAmount.Visible := False;
+                frmActions.lblPreauthId.Visible := False;
+                frmActions.edtAmount.Visible := False;
+                frmActions.edtPreauthId.Visible := False;
+                exit;
+              end;
+
+              SuccessState_Failed:
+              begin
+                frmActions.btnAction1.Visible := True;
+                frmActions.btnAction1.Caption := 'Retry';
+                frmActions.btnAction2.Visible := True;
+                frmActions.btnAction2.Caption := 'Cancel';
+                frmActions.btnAction3.Visible := False;
+                frmActions.lblAmount.Visible := False;
+                frmActions.edtAmount.Visible := False;
+                exit;
+              end;
+              else
+              begin
+                frmActions.btnAction1.Visible := True;
+                frmActions.btnAction1.Caption := 'OK';
+                frmActions.btnAction2.Visible := False;
+                frmActions.btnAction3.Visible := False;
+                frmActions.lblAmount.Visible := False;
+                frmActions.lblPreauthId.Visible := False;
+                frmActions.edtAmount.Visible := False;
+                frmActions.edtPreauthId.Visible := False;
+                exit;
+              end;
+            end;
+          end;
+        end;
+
+        SpiFlow_Pairing:
+        begin
+          frmActions.btnAction1.Visible := True;
+          frmActions.btnAction1.Caption := 'OK';
+          frmActions.btnAction2.Visible := False;
+          frmActions.btnAction3.Visible := False;
+          frmActions.lblAmount.Visible := False;
+          frmActions.lblPreauthId.Visible := False;
+          frmActions.edtAmount.Visible := False;
+          frmActions.edtPreauthId.Visible := False;
+          exit;
+        end;
+
+      else
+        frmActions.btnAction1.Visible := True;
+        frmActions.btnAction1.Caption := 'OK';
+        frmActions.btnAction2.Visible := False;
+        frmActions.btnAction3.Visible := False;
+        frmActions.lblAmount.Visible := False;
+        frmActions.lblPreauthId.Visible := False;
+        frmActions.edtAmount.Visible := False;
+        frmActions.edtPreauthId.Visible := False;
+        frmActions.richEdtFlow.Lines.Clear;
+        frmActions.richEdtFlow.Lines.Add('# .. Unexpected Flow .. ' +
+          ComWrapper.GetSpiFlowEnumName(Spi.CurrentFlow));
+        exit;
+      end;
 
     SpiStatus_PairedConnected:
       case Spi.CurrentFlow of
@@ -548,7 +682,7 @@ begin
   end;
 
   frmActions.Show;
-  PrintFlowInfo(e);
+  PrintFlowInfo;
   TMyWorkerThread.Create(false);
 end;
 
@@ -571,6 +705,7 @@ begin
       e.ConfirmationCode);
   end;
 
+  PrintFlowInfo;
   TMyWorkerThread.Create(false);
 end;
 
@@ -583,27 +718,18 @@ procedure SpiStatusChanged(e: SPIClient_TLB.SpiStatusEventArgs); stdcall;
 begin
   if (not Assigned(frmActions)) then
   begin
-    if (not Init) then
-    begin
-      frmActions := TfrmActions.Create(frmMain, Spi);
-      frmActions.PopupParent := frmMain;
-      frmMain.Enabled := False;
-    end;
+    frmActions := TfrmActions.Create(frmMain, Spi);
+    frmActions.PopupParent := frmMain;
+    frmMain.Enabled := False;
   end;
 
-  if (not Init) then
-  begin
-    frmActions.Show;
-    frmActions.lblFlowMessage.Caption := 'It''s trying to connect';
+  frmActions.Show;
+  frmActions.lblFlowMessage.Caption := 'It''s trying to connect';
 
-    if (Spi.CurrentFlow = SpiFlow_Idle) then
-    begin
-      frmActions.richEdtFlow.Lines.Clear();
-    end;
+  if (Spi.CurrentFlow = SpiFlow_Idle) then
+    frmActions.richEdtFlow.Lines.Clear();
 
-    Init := False;
-  end;
-
+  PrintFlowInfo;
   TMyWorkerThread.Create(false);
 end;
 
@@ -617,26 +743,20 @@ end;
 
 procedure Start;
 begin
-  ComWrapper := CreateComObject(CLASS_ComWrapper) AS SPIClient_TLB.ComWrapper;
-  Spi := CreateComObject(CLASS_Spi) AS SPIClient_TLB.Spi;
-  SpiPreauth := CreateComObject(CLASS_SpiPreauth) AS SPIClient_TLB.SpiPreauth;
-  SpiSecrets := CreateComObject(CLASS_Secrets) AS SPIClient_TLB.Secrets;
-  SpiSecrets := nil;
-
   LoadPersistedState;
 
+  _posId := frmMain.edtPosID.Text;
+  _eftposAddress := frmMain.edtEftposAddress.Text;
+
   Spi := ComWrapper.SpiInit(_posId, _eftposAddress, SpiSecrets);
+
   ComWrapper.Main(Spi, LongInt(@TxFlowStateChanged),
     LongInt(@PairingFlowStateChanged), LongInt(@SecretsChanged),
     LongInt(@SpiStatusChanged));
   SpiPreauth := Spi.EnablePreauth;
+
   Spi.Start;
 
-  TMyWorkerThread.Create(false);
-end;
-
-procedure TfrmMain.DPrintStatusAndActions;
-begin
   TMyWorkerThread.Create(false);
 end;
 
@@ -644,51 +764,21 @@ procedure TfrmMain.btnPairClick(Sender: TObject);
 begin
   if (btnPair.Caption = 'Pair') then
   begin
-    if (edtPosID.Text = '') or (edtEftposAddress.Text = '') then
-    begin
-      showmessage('Please fill the parameters');
-      exit;
-    end;
-
-    _posId := edtPosID.Text;
-    _eftposAddress := edtEftposAddress.Text;
-    Spi.SetPosId(_posId);
-    Spi.SetEftposAddress(_eftposAddress);
-
-    if (radioReceipt.ItemIndex = 0) then
-    begin
-      Spi.Config.PromptForCustomerCopyOnEftpos := True;
-    end
-    else
-    begin
-      Spi.Config.PromptForCustomerCopyOnEftpos := False;
-    end;
-
-    if (radioSign.ItemIndex = 0) then
-    begin
-      Spi.Config.SignatureFlowOnEftpos := True;
-    end
-    else
-    begin
-      Spi.Config.SignatureFlowOnEftpos := False;
-    end;
-
+    Spi.Pair;
+    btnSecrets.Visible := True;
     edtPosID.Enabled := False;
     edtEftposAddress.Enabled := False;
     frmMain.lblStatus.Color := clYellow;
-    Spi.Pair;
   end
   else if (btnPair.Caption = 'UnPair') then
   begin
+    Spi.Unpair;
     frmMain.btnPair.Caption := 'Pair';
     frmMain.pnlPreAuthActions.Visible := False;
     frmMain.pnlOtherActions.Visible := False;
+    edtSecrets.Text := '';
     lblStatus.Color := clRed;
-    Spi.Unpair;
   end;
-
-  frmMain.btnPair.Enabled := False;
-  frmMain.Enabled := False;
 end;
 
 procedure TfrmMain.FormClose(Sender: TObject;
@@ -704,8 +794,13 @@ end;
 
 procedure TfrmMain.FormCreate(Sender: TObject);
 begin
+  ComWrapper := CreateComObject(CLASS_ComWrapper) AS SPIClient_TLB.ComWrapper;
+  Spi := CreateComObject(CLASS_Spi) AS SPIClient_TLB.Spi;
+  SpiSecrets := CreateComObject(CLASS_Secrets) AS SPIClient_TLB.Secrets;
+  SpiSecrets := nil;
+
+  frmMain.edtPosID.Text := 'DELPHIPOS';
   lblStatus.Color := clRed;
-  Start;
 end;
 
 procedure TfrmMain.btnVerifyClick(Sender: TObject);
@@ -981,6 +1076,75 @@ begin
         rres.Message + '. Please Retry.');
     end;
   end;
+end;
+
+procedure TfrmMain.btnSaveClick(Sender: TObject);
+begin
+  Start;
+
+  btnSave.Enabled := False;
+  if (edtPosID.Text = '') or (edtEftposAddress.Text = '') then
+  begin
+    showmessage('Please fill the parameters');
+    exit;
+  end;
+
+  if (radioReceipt.ItemIndex = 0) then
+  begin
+    Spi.Config.PromptForCustomerCopyOnEftpos := True;
+  end
+  else
+  begin
+    Spi.Config.PromptForCustomerCopyOnEftpos := False;
+  end;
+
+  if (radioSign.ItemIndex = 0) then
+  begin
+    Spi.Config.SignatureFlowOnEftpos := True;
+  end
+  else
+  begin
+    Spi.Config.SignatureFlowOnEftpos := False;
+  end;
+
+  Spi.SetPosId(edtPosID.Text);
+  Spi.SetEftposAddress(edtEftposAddress.Text);
+  frmMain.pnlStatus.Visible := True;
+end;
+
+procedure TfrmMain.btnSecretsClick(Sender: TObject);
+begin
+  if (not Assigned(frmActions)) then
+  begin
+    frmActions := frmActions.Create(frmMain, Spi);
+    frmActions.PopupParent := frmMain;
+    frmMain.Enabled := False;
+  end;
+
+  frmActions.richEdtFlow.Clear;
+
+  if (SpiSecrets <> nil) then
+  begin
+    frmActions.richEdtFlow.Lines.Add('Pos Id: ' + _posId);
+    frmActions.richEdtFlow.Lines.Add('Eftpos Address: ' + _eftposAddress);
+    frmActions.richEdtFlow.Lines.Add('Secrets: ' + SpiSecrets.encKey + ':' +
+      SpiSecrets.hmacKey);
+  end
+  else
+  begin
+    frmActions.richEdtFlow.Lines.Add('I have no secrets!');
+  end;
+
+  frmActions.Show;
+  frmActions.btnAction1.Visible := True;
+  frmActions.btnAction1.Caption := 'OK';
+  frmActions.btnAction2.Visible := False;
+  frmActions.btnAction3.Visible := False;
+  frmActions.lblAmount.Visible := False;
+  frmActions.lblPreauthId.Visible := False;
+  frmActions.edtAmount.Visible := False;
+  frmActions.edtPreauthId.Visible := False;
+  frmMain.Enabled := False;
 end;
 
 end.
