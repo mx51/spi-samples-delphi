@@ -4,7 +4,7 @@ object frmMain: TfrmMain
   AutoSize = True
   BorderIcons = [biSystemMenu]
   Caption = 'Kebab Delphi Pos'
-  ClientHeight = 498
+  ClientHeight = 571
   ClientWidth = 626
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -23,7 +23,7 @@ object frmMain: TfrmMain
     Left = 0
     Top = 0
     Width = 313
-    Height = 147
+    Height = 225
     BorderStyle = bsSingle
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -80,8 +80,8 @@ object frmMain: TfrmMain
       WordWrap = True
     end
     object lblReceiptFrom: TLabel
-      Left = 1
-      Top = 100
+      Left = 5
+      Top = 134
       Width = 150
       Height = 19
       AutoSize = False
@@ -95,8 +95,8 @@ object frmMain: TfrmMain
       WordWrap = True
     end
     object lblSignFrom: TLabel
-      Left = 1
-      Top = 123
+      Left = 5
+      Top = 157
       Width = 150
       Height = 19
       AutoSize = False
@@ -104,6 +104,21 @@ object frmMain: TfrmMain
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+      WordWrap = True
+    end
+    object lblSecrets: TLabel
+      Left = 1
+      Top = 99
+      Width = 134
+      Height = 19
+      AutoSize = False
+      Caption = 'Secrets:'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -16
       Font.Name = 'Tahoma'
       Font.Style = []
       ParentFont = False
@@ -123,8 +138,8 @@ object frmMain: TfrmMain
       TabOrder = 0
     end
     object radioSign: TRadioGroup
-      Left = 141
-      Top = 97
+      Left = 145
+      Top = 131
       Width = 160
       Height = 42
       Columns = 2
@@ -141,8 +156,8 @@ object frmMain: TfrmMain
       TabOrder = 3
     end
     object radioReceipt: TRadioGroup
-      Left = 141
-      Top = 75
+      Left = 145
+      Top = 109
       Width = 160
       Height = 42
       Columns = 2
@@ -171,10 +186,38 @@ object frmMain: TfrmMain
       ParentFont = False
       TabOrder = 1
     end
+    object btnSave: TButton
+      Left = 147
+      Top = 179
+      Width = 158
+      Height = 34
+      Caption = 'Save'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -16
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 4
+      OnClick = btnSaveClick
+    end
+    object edtSecrets: TEdit
+      Left = 143
+      Top = 100
+      Width = 158
+      Height = 24
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 5
+    end
   end
   object pnlStatus: TPanel
     Left = 0
-    Top = 147
+    Top = 225
     Width = 313
     Height = 110
     BorderStyle = bsSingle
@@ -185,6 +228,7 @@ object frmMain: TfrmMain
     Font.Style = []
     ParentFont = False
     TabOrder = 1
+    Visible = False
     object lblStatusHead: TLabel
       Left = 1
       Top = 1
@@ -224,20 +268,30 @@ object frmMain: TfrmMain
       Layout = tlCenter
     end
     object btnPair: TButton
-      Left = 74
+      Left = 36
       Top = 65
-      Width = 158
+      Width = 103
       Height = 34
       Caption = 'Pair'
       TabOrder = 0
       OnClick = btnPairClick
+    end
+    object btnSecrets: TButton
+      Left = 185
+      Top = 65
+      Width = 103
+      Height = 34
+      Caption = 'Secrets'
+      TabOrder = 1
+      Visible = False
+      OnClick = btnSecretsClick
     end
   end
   object pnlReceipt: TPanel
     Left = 313
     Top = 0
     Width = 313
-    Height = 498
+    Height = 571
     BorderStyle = bsSingle
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -269,7 +323,7 @@ object frmMain: TfrmMain
       Left = 1
       Top = 35
       Width = 307
-      Height = 455
+      Height = 528
       Font.Charset = ANSI_CHARSET
       Font.Color = clWindowText
       Font.Height = -11
@@ -284,7 +338,7 @@ object frmMain: TfrmMain
   end
   object pnlTransActions: TPanel
     Left = 0
-    Top = 257
+    Top = 330
     Width = 313
     Height = 129
     BorderStyle = bsSingle
@@ -408,7 +462,7 @@ object frmMain: TfrmMain
   end
   object pnlOtherActions: TPanel
     Left = 0
-    Top = 386
+    Top = 459
     Width = 313
     Height = 112
     BorderStyle = bsSingle

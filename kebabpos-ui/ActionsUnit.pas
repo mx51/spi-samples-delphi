@@ -201,7 +201,7 @@ begin
     Spi.AckFlowEndedAndBackToIdle;
     frmActions.richEdtFlow.Lines.Clear;
     frmActions.lblFlowMessage.Caption := 'Select from the options';
-    frmMain.DPrintStatusAndActions;
+    TMyWorkerThread.Create(false);
     frmMain.Enabled := True;
     frmMain.btnPair.Enabled := True;
     frmMain.edtPosID.Enabled := True;
@@ -250,7 +250,7 @@ begin
     begin
       frmActions.lblFlowMessage.Caption :=
         'Retry by selecting from the options';
-      frmMain.DPrintStatusAndActions;
+      TMyWorkerThread.Create(false);
     end;
   end
   else if (btnAction1.Caption = 'Purchase') then
@@ -286,7 +286,7 @@ begin
   begin
     Spi.AckFlowEndedAndBackToIdle;
     frmActions.richEdtFlow.Lines.Clear;
-    frmMain.DPrintStatusAndActions;
+    TMyWorkerThread.Create(false);
     frmMain.Enabled := True;
     Hide
   end;
