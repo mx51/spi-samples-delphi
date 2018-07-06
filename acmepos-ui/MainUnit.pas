@@ -291,8 +291,16 @@ begin
         SpiFlow_Idle:
           begin
             if Assigned(frmActions) then
+            begin
               frmActions.lblFlowMessage.Caption := 'Unpaired';
-            exit;
+              frmActions.btnAction1.Visible := True;
+              frmActions.btnAction1.Caption := 'OK-Unpaired';
+              frmActions.btnAction2.Visible := False;
+              frmActions.btnAction3.Visible := False;
+              frmActions.lblAmount.Visible := False;
+              frmActions.edtAmount.Visible := False;
+              exit;
+            end;
           end;
         SpiFlow_Pairing:
           begin
@@ -516,6 +524,7 @@ begin
   if (not SecretsInited) then
   begin
     frmActions.Show;
+    frmActions.lblFlowMessage.Caption := 'It''s trying to connect';
 
     if (Spi.CurrentFlow = SpiFlow_Idle) then
       frmActions.richEdtFlow.Lines.Clear();
@@ -581,6 +590,12 @@ procedure TfrmMain.btnPairClick(Sender: TObject);
 begin
   if (btnPair.Caption = 'Pair') then
   begin
+    if (edtPosID.Text = '') or (edtEftposAddress.Text = '') then
+    begin
+      showmessage('Please fill the parameters');
+      exit;
+    end;
+
     _posId := edtPosID.Text;
     _eftposAddress := edtEftposAddress.Text;
     Spi.SetPosId(_posId);

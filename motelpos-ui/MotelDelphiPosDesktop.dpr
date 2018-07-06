@@ -1,4 +1,4 @@
-program DelphiPosDesktop;
+program MotelDelphiPosDesktop;
 
 uses
   Vcl.Forms,

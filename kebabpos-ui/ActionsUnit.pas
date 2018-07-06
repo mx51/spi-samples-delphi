@@ -20,6 +20,12 @@ type
     lblFlowMessage: TLabel;
     richEdtFlow: TRichEdit;
     btnAction3: TButton;
+    edtTipAmount: TEdit;
+    lblTipAmount: TLabel;
+    edtCashoutAmount: TEdit;
+    lblCashoutAmount: TLabel;
+    lblPrompt: TLabel;
+    radioPrompt: TRadioGroup;
     procedure btnAction1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormHide(Sender: TObject);
@@ -53,12 +59,29 @@ end;
 procedure DoPurchase;
 var
   purchase: SPIClient_TLB.InitiateTxResult;
-  amount: Integer;
+  amount, tipAmount, cashoutAmount: Integer;
+  posRefId: WideString;
+  promptForCashout: Boolean;
 begin
   amount := StrToInt(frmActions.edtAmount.Text);
+  tipAmount := StrToInt(frmActions.edtTipAmount.Text);
+  cashoutAmount := StrToInt(frmActions.edtCashoutAmount.Text);
+  frmActions.richEdtFlow.Lines.Clear;
+
+  if frmActions.radioPrompt.ItemIndex = 0 then
+  begin
+    promptForCashout := True;
+  end
+  else
+  begin
+    promptForCashout := False;
+  end;
+
   purchase := CreateComObject(CLASS_InitiateTxResult)
     AS SPIClient_TLB.InitiateTxResult;
-  purchase := Spi.InitiatePurchaseTx(ComWrapper.Get_Id('prchs'), amount);
+  posRefId := 'kebab-' + FormatDateTime('dd-mm-yyyy-hh-nn-ss', Now);
+  purchase := Spi.InitiatePurchaseTxV2(posRefId, amount, tipAmount,
+    cashoutAmount, promptForCashout);
 
   if (purchase.Initiated) then
   begin
@@ -80,7 +103,7 @@ begin
   amount := StrToInt(frmActions.edtAmount.Text);
   refund := CreateComObject(CLASS_InitiateTxResult)
     AS SPIClient_TLB.InitiateTxResult;
-  refund := Spi.InitiateRefundTx(ComWrapper.Get_Id('rfnd'), amount);
+  refund := Spi.InitiateRefundTx('rfnd-' + FormatDateTime('dd-mm-yyyy-hh-nn-ss', Now), amount);
 
   if (refund.Initiated) then
   begin
@@ -94,8 +117,51 @@ begin
   end;
 end;
 
-procedure TfrmActions.FormClose(Sender: TObject;
-  var Action: TCloseAction);
+procedure DoCashOut;
+var
+  coRes: SPIClient_TLB.InitiateTxResult;
+  amount: Integer;
+begin
+  amount := StrToInt(frmActions.edtAmount.Text);
+  coRes := CreateComObject(CLASS_InitiateTxResult)
+    AS SPIClient_TLB.InitiateTxResult;
+  coRes := Spi.InitiateCashoutOnlyTx('cshout-' + FormatDateTime('dd-mm-yyyy-hh-nn-ss', Now), amount);
+
+  if (coRes.Initiated) then
+  begin
+    frmActions.richEdtFlow.Lines.Add
+      ('# Cashout Initiated. Will be updated with Progress.');
+  end
+  else
+  begin
+    frmActions.richEdtFlow.Lines.Add('# Could not initiate cashout: ' +
+      coRes.Message + '. Please Retry.');
+  end;
+end;
+
+procedure DoMoto;
+var
+  motoRes: SPIClient_TLB.InitiateTxResult;
+  amount: Integer;
+begin
+  amount := StrToInt(frmActions.edtAmount.Text);
+  motoRes := CreateComObject(CLASS_InitiateTxResult)
+    AS SPIClient_TLB.InitiateTxResult;
+  motoRes := Spi.InitiateMotoPurchaseTx('moto-' + FormatDateTime('dd-mm-yyyy-hh-nn-ss', Now), amount);
+
+  if (motoRes.Initiated) then
+  begin
+    frmActions.richEdtFlow.Lines.Add
+      ('# Moto Initiated. Will be updated with Progress.');
+  end
+  else
+  begin
+    frmActions.richEdtFlow.Lines.Add('# Could not initiate moto: ' +
+      motoRes.Message + '. Please Retry.');
+  end;
+end;
+
+procedure TfrmActions.FormClose(Sender: TObject;  var Action: TCloseAction);
 begin
   Action := caFree;
 end;
@@ -134,8 +200,8 @@ begin
   begin
     Spi.AckFlowEndedAndBackToIdle;
     frmActions.richEdtFlow.Lines.Clear;
-    frmActions.lblFlowMessage.Caption := 'Select from the options below';
-    frmMain.DPrintStatusAndActions;
+    frmActions.lblFlowMessage.Caption := 'Select from the options';
+    TMyWorkerThread.Create(false);
     frmMain.Enabled := True;
     frmMain.btnPair.Enabled := True;
     frmMain.edtPosID.Enabled := True;
@@ -151,7 +217,8 @@ begin
     frmMain.edtPosID.Enabled := True;
     frmMain.edtEftposAddress.Enabled := True;
     frmMain.btnPair.Caption := 'Pair';
-    frmMain.pnlActions.Visible := False;
+    frmMain.pnlTransActions.Visible := False;
+    frmMain.pnlOtherActions.Visible := False;
     frmMain.lblStatus.Color := clRed;
     Hide;
   end
@@ -167,11 +234,23 @@ begin
     begin
       DoPurchase;
     end
+    else if (Spi.CurrentTxFlowState.type_ = TransactionType_Refund) then
+    begin
+      DoRefund;
+    end
+    else if (Spi.CurrentTxFlowState.type_ = TransactionType_CashoutOnly) then
+    begin
+      DoCashOut;
+    end
+    else if (Spi.CurrentTxFlowState.type_ = TransactionType_MOTO) then
+    begin
+      DoMoto;
+    end
     else
     begin
-      frmActions.lblFlowStatus.Caption :=
-        'Retry by selecting from the options below';
-      frmMain.DPrintStatusAndActions;
+      frmActions.lblFlowMessage.Caption :=
+        'Retry by selecting from the options';
+      TMyWorkerThread.Create(false);
     end;
   end
   else if (btnAction1.Caption = 'Purchase') then
@@ -181,6 +260,14 @@ begin
   else if (btnAction1.Caption = 'Refund') then
   begin
     DoRefund;
+  end
+  else if (btnAction1.Caption = 'Cash Out') then
+  begin
+    DoCashOut;
+  end
+  else if (btnAction1.Caption = 'MOTO') then
+  begin
+    DoMoto;
   end;
 end;
 
@@ -199,7 +286,7 @@ begin
   begin
     Spi.AckFlowEndedAndBackToIdle;
     frmActions.richEdtFlow.Lines.Clear;
-    frmMain.DPrintStatusAndActions;
+    TMyWorkerThread.Create(false);
     frmMain.Enabled := True;
     Hide
   end;

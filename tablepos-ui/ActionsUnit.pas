@@ -20,6 +20,8 @@ type
     lblFlowMessage: TLabel;
     richEdtFlow: TRichEdit;
     btnAction3: TButton;
+    lblTableId: TLabel;
+    edtTableId: TEdit;
     procedure btnAction1Click(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormHide(Sender: TObject);
@@ -54,11 +56,15 @@ procedure DoPurchase;
 var
   purchase: SPIClient_TLB.InitiateTxResult;
   amount: Integer;
+  posRefId: WideString;
 begin
   amount := StrToInt(frmActions.edtAmount.Text);
+  frmActions.richEdtFlow.Lines.Clear;
+
   purchase := CreateComObject(CLASS_InitiateTxResult)
     AS SPIClient_TLB.InitiateTxResult;
-  purchase := Spi.InitiatePurchaseTx(ComWrapper.Get_Id('prchs'), amount);
+  posRefId := 'purchase-' + FormatDateTime('dd-mm-yyyy-hh-nn-ss', Now);
+  purchase := Spi.InitiatePurchaseTxV2(posRefId, amount, 0, 0, False);
 
   if (purchase.Initiated) then
   begin
@@ -80,7 +86,7 @@ begin
   amount := StrToInt(frmActions.edtAmount.Text);
   refund := CreateComObject(CLASS_InitiateTxResult)
     AS SPIClient_TLB.InitiateTxResult;
-  refund := Spi.InitiateRefundTx(ComWrapper.Get_Id('rfnd'), amount);
+  refund := Spi.InitiateRefundTx('rfnd-' + FormatDateTime('o', Now), amount);
 
   if (refund.Initiated) then
   begin
@@ -135,7 +141,7 @@ begin
     Spi.AckFlowEndedAndBackToIdle;
     frmActions.richEdtFlow.Lines.Clear;
     frmActions.lblFlowMessage.Caption := 'Select from the options below';
-    frmMain.DPrintStatusAndActions;
+    TMyWorkerThread.Create(false);
     frmMain.Enabled := True;
     frmMain.btnPair.Enabled := True;
     frmMain.edtPosID.Enabled := True;
@@ -151,7 +157,8 @@ begin
     frmMain.edtPosID.Enabled := True;
     frmMain.edtEftposAddress.Enabled := True;
     frmMain.btnPair.Caption := 'Pair';
-    frmMain.pnlActions.Visible := False;
+    frmMain.pnlTableActions.Visible := False;
+    frmMain.pnlOtherActions.Visible := False;
     frmMain.lblStatus.Color := clRed;
     Hide;
   end
@@ -167,11 +174,15 @@ begin
     begin
       DoPurchase;
     end
+    else if (Spi.CurrentTxFlowState.type_ = TransactionType_Refund) then
+    begin
+      DoRefund;
+    end
     else
     begin
       frmActions.lblFlowStatus.Caption :=
         'Retry by selecting from the options below';
-      frmMain.DPrintStatusAndActions;
+      TMyWorkerThread.Create(false);
     end;
   end
   else if (btnAction1.Caption = 'Purchase') then
@@ -181,6 +192,26 @@ begin
   else if (btnAction1.Caption = 'Refund') then
   begin
     DoRefund;
+  end
+  else if (btnAction1.Caption = 'Open') then
+  begin
+    frmMain.OpenTable;
+  end
+  else if (btnAction1.Caption = 'Close') then
+  begin
+    frmMain.CloseTable;
+  end
+  else if (btnAction1.Caption = 'Add') then
+  begin
+    frmMain.AddToTable;
+  end
+  else if (btnAction1.Caption = 'Print Bill') then
+  begin
+    frmMain.PrintBill('');
+  end
+  else if (btnAction1.Caption = 'Get Bill') then
+  begin
+    frmMain.GetBill;
   end;
 end;
 
@@ -199,9 +230,9 @@ begin
   begin
     Spi.AckFlowEndedAndBackToIdle;
     frmActions.richEdtFlow.Lines.Clear;
-    frmMain.DPrintStatusAndActions;
+    TMyWorkerThread.Create(false);
     frmMain.Enabled := True;
-    Hide
+    Hide;
   end;
 end;
 

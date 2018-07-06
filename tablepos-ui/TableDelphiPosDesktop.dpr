@@ -1,4 +1,4 @@
-program DelphiPosDesktop;
+program TableDelphiPosDesktop;
 
 uses
   Vcl.Forms,

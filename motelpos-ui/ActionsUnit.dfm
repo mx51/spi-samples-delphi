@@ -4,8 +4,8 @@ object frmActions: TfrmActions
   AutoSize = True
   BorderIcons = []
   Caption = 'Actions'
-  ClientHeight = 496
-  ClientWidth = 362
+  ClientHeight = 457
+  ClientWidth = 423
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -23,9 +23,9 @@ object frmActions: TfrmActions
   TextHeight = 13
   object pnlActions: TPanel
     Left = 0
-    Top = 338
-    Width = 361
-    Height = 158
+    Top = 330
+    Width = 423
+    Height = 127
     BorderStyle = bsSingle
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -34,23 +34,37 @@ object frmActions: TfrmActions
     Font.Style = []
     ParentFont = False
     TabOrder = 0
+    object lblPreauthId: TLabel
+      Left = 2
+      Top = 12
+      Width = 65
+      Height = 16
+      Caption = 'PreAuth Id:'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+      Visible = False
+    end
     object lblAmount: TLabel
-      Left = 52
-      Top = 5
-      Width = 116
-      Height = 19
+      Left = 2
+      Top = 47
+      Width = 93
+      Height = 16
       Caption = 'Amount (cents):'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
-      Font.Height = -16
+      Font.Height = -13
       Font.Name = 'Tahoma'
       Font.Style = []
       ParentFont = False
       Visible = False
     end
     object btnAction1: TButton
-      Left = 104
-      Top = 32
+      Left = 251
+      Top = 4
       Width = 166
       Height = 34
       Font.Charset = DEFAULT_CHARSET
@@ -64,8 +78,8 @@ object frmActions: TfrmActions
       OnClick = btnAction1Click
     end
     object btnAction2: TButton
-      Left = 104
-      Top = 72
+      Left = 251
+      Top = 44
       Width = 166
       Height = 34
       Font.Charset = DEFAULT_CHARSET
@@ -78,9 +92,9 @@ object frmActions: TfrmActions
       Visible = False
       OnClick = btnAction2Click
     end
-    object edtAmount: TEdit
-      Left = 187
-      Top = 2
+    object edtPreauthId: TEdit
+      Left = 116
+      Top = 9
       Width = 129
       Height = 27
       Font.Charset = DEFAULT_CHARSET
@@ -93,8 +107,8 @@ object frmActions: TfrmActions
       Visible = False
     end
     object btnAction3: TButton
-      Left = 104
-      Top = 112
+      Left = 251
+      Top = 84
       Width = 166
       Height = 34
       Font.Charset = DEFAULT_CHARSET
@@ -107,11 +121,27 @@ object frmActions: TfrmActions
       Visible = False
       OnClick = btnAction3Click
     end
+    object edtAmount: TEdit
+      Left = 116
+      Top = 44
+      Width = 129
+      Height = 27
+      Alignment = taRightJustify
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -16
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      NumbersOnly = True
+      ParentFont = False
+      TabOrder = 4
+      Visible = False
+    end
   end
   object pnlFlow: TPanel
     Left = 0
     Top = 0
-    Width = 362
+    Width = 423
     Height = 336
     BorderStyle = bsSingle
     Font.Charset = DEFAULT_CHARSET
@@ -124,7 +154,7 @@ object frmActions: TfrmActions
     object lblFlow: TLabel
       Left = 0
       Top = 0
-      Width = 179
+      Width = 217
       Height = 33
       Alignment = taRightJustify
       AutoSize = False
@@ -140,9 +170,9 @@ object frmActions: TfrmActions
       Transparent = False
     end
     object lblFlowStatus: TLabel
-      Left = 179
+      Left = 211
       Top = 0
-      Width = 179
+      Width = 206
       Height = 33
       AutoSize = False
       Caption = 'Idle'
@@ -159,7 +189,7 @@ object frmActions: TfrmActions
     object lblFlowMessage: TLabel
       Left = 0
       Top = 33
-      Width = 358
+      Width = 417
       Height = 49
       AutoSize = False
       Font.Charset = DEFAULT_CHARSET
@@ -174,7 +204,7 @@ object frmActions: TfrmActions
     object richEdtFlow: TRichEdit
       Left = 0
       Top = 88
-      Width = 358
+      Width = 417
       Height = 242
       Font.Charset = ANSI_CHARSET
       Font.Color = clWindowText

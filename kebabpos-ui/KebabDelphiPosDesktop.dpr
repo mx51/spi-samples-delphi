@@ -1,4 +1,4 @@
-program DelphiPosDesktop;
+program KebabDelphiPosDesktop;
 
 uses
   Vcl.Forms,
