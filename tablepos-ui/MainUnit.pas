@@ -1507,7 +1507,7 @@ begin
     else
     begin
       tableToBillMappingDict.Remove(tableId);
-      assemblyBillDataStoreDict.Remove(tableId);
+      assemblyBillDataStoreDict.Remove(billId);
       frmActions.richEdtFlow.Lines.Add('Closed: ' +
         BillToString(billsStoreDict[billId]));
     end;
