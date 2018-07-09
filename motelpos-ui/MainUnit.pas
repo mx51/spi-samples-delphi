@@ -348,6 +348,7 @@ begin
               frmActions.lblPreauthId.Visible := False;
               frmActions.edtAmount.Visible := False;
               frmActions.edtPreauthId.Visible := False;
+              frmMain.lblStatus.Color := clRed;
               exit;
             end;
           end;
@@ -420,7 +421,7 @@ begin
           frmMain.btnPair.Caption := 'UnPair';
           frmMain.pnlPreAuthActions.Visible := True;
           frmMain.pnlOtherActions.Visible := True;
-          frmMain.lblStatus.Color := clGreen;
+          frmMain.lblStatus.Color := clYellow;
           frmActions.lblFlowMessage.Caption := '# --> SPI Status Changed: ' +
             ComWrapper.GetSpiStatusEnumName(spi.CurrentStatus);
           frmActions.btnAction1.Visible := True;
@@ -710,6 +711,7 @@ end;
 procedure SecretsChanged(e: SPIClient_TLB.Secrets); stdcall;
 begin
   SpiSecrets := e;
+  frmMain.btnSecretsClick(frmMain.btnSecrets);
 end;
 
 procedure SpiStatusChanged(e: SPIClient_TLB.SpiStatusEventArgs); stdcall;
