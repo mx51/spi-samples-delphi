@@ -542,6 +542,8 @@ begin
           frmMain.pnlPreAuthActions.Visible := True;
           frmMain.pnlOtherActions.Visible := True;
           frmMain.lblStatus.Color := clGreen;
+          frmActions.lblFlowMessage.Caption := '# --> SPI Status Changed: ' +
+            ComWrapper.GetSpiStatusEnumName(spi.CurrentStatus);
 
           if (frmActions.btnAction1.Caption = 'Retry') then
           begin
