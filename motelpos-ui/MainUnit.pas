@@ -29,7 +29,6 @@ type
     lblPreAuthActions: TLabel;
     lblReference: TLabel;
     btnRecover: TButton;
-    btnLastTx: TButton;
     edtReference: TEdit;
     btnCancel: TButton;
     btnSecrets: TButton;
@@ -52,7 +51,6 @@ type
     procedure btnExtendClick(Sender: TObject);
     procedure btnTopDownClick(Sender: TObject);
     procedure btnVerifyClick(Sender: TObject);
-    procedure btnLastTxClick(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
     procedure btnTopUpClick(Sender: TObject);
     procedure btnCompleteClick(Sender: TObject);
@@ -350,6 +348,7 @@ begin
               frmActions.lblPreauthId.Visible := False;
               frmActions.edtAmount.Visible := False;
               frmActions.edtPreauthId.Visible := False;
+              frmMain.lblStatus.Color := clRed;
               exit;
             end;
           end;
@@ -422,7 +421,7 @@ begin
           frmMain.btnPair.Caption := 'UnPair';
           frmMain.pnlPreAuthActions.Visible := True;
           frmMain.pnlOtherActions.Visible := True;
-          frmMain.lblStatus.Color := clGreen;
+          frmMain.lblStatus.Color := clYellow;
           frmActions.lblFlowMessage.Caption := '# --> SPI Status Changed: ' +
             ComWrapper.GetSpiStatusEnumName(spi.CurrentStatus);
           frmActions.btnAction1.Visible := True;
@@ -543,6 +542,8 @@ begin
           frmMain.pnlPreAuthActions.Visible := True;
           frmMain.pnlOtherActions.Visible := True;
           frmMain.lblStatus.Color := clGreen;
+          frmActions.lblFlowMessage.Caption := '# --> SPI Status Changed: ' +
+            ComWrapper.GetSpiStatusEnumName(spi.CurrentStatus);
 
           if (frmActions.btnAction1.Caption = 'Retry') then
           begin
@@ -712,6 +713,7 @@ end;
 procedure SecretsChanged(e: SPIClient_TLB.Secrets); stdcall;
 begin
   SpiSecrets := e;
+  frmMain.btnSecretsClick(frmMain.btnSecrets);
 end;
 
 procedure SpiStatusChanged(e: SPIClient_TLB.SpiStatusEventArgs); stdcall;
@@ -990,45 +992,6 @@ begin
   frmActions.edtAmount.Text := '0';
   frmActions.edtPreauthId.Visible := True;
   frmMain.Enabled := False;
-end;
-
-procedure TfrmMain.btnLastTxClick(Sender: TObject);
-var
-  gltres: SPIClient_TLB.InitiateTxResult;
-begin
-  if (not Assigned(frmActions)) then
-  begin
-    frmActions := frmActions.Create(frmMain, Spi);
-    frmActions.PopupParent := frmMain;
-    frmMain.Enabled := False;
-  end;
-
-  frmActions.Show;
-  frmActions.btnAction1.Visible := True;
-  frmActions.btnAction1.Caption := 'Cancel';
-  frmActions.btnAction2.Visible := False;
-  frmActions.btnAction3.Visible := False;
-  frmActions.lblAmount.Visible := False;
-  frmActions.lblPreauthId.Visible := False;
-  frmActions.edtAmount.Visible := False;
-  frmActions.edtPreauthId.Visible := False;
-  frmMain.Enabled := False;
-
-  gltres := CreateComObject(CLASS_InitiateTxResult)
-    AS SPIClient_TLB.InitiateTxResult;
-
-  gltres := Spi.InitiateGetLastTx;
-
-  if (gltres.Initiated) then
-  begin
-    frmActions.richEdtFlow.Lines.Add
-      ('# GLT Initiated. Will be updated with Progress.');
-  end
-  else
-  begin
-    frmActions.richEdtFlow.Lines.Add('# Could not initiate GLT: ' +
-      gltres.Message + '. Please Retry.');
-  end;
 end;
 
 procedure TfrmMain.btnRecoverClick(Sender: TObject);
