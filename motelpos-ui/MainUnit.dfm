@@ -326,9 +326,9 @@ object frmMain: TfrmMain
       ParentFont = False
     end
     object btnRecover: TButton
-      Left = 74
+      Left = 147
       Top = 70
-      Width = 80
+      Width = 158
       Height = 34
       Caption = 'Recover'
       Font.Charset = DEFAULT_CHARSET
@@ -339,21 +339,6 @@ object frmMain: TfrmMain
       ParentFont = False
       TabOrder = 0
       OnClick = btnRecoverClick
-    end
-    object btnLastTx: TButton
-      Left = 173
-      Top = 70
-      Width = 80
-      Height = 34
-      Caption = 'Last Tx'
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -16
-      Font.Name = 'Tahoma'
-      Font.Style = []
-      ParentFont = False
-      TabOrder = 1
-      OnClick = btnLastTxClick
     end
     object edtReference: TEdit
       Left = 147
@@ -366,7 +351,7 @@ object frmMain: TfrmMain
       Font.Name = 'Tahoma'
       Font.Style = []
       ParentFont = False
-      TabOrder = 2
+      TabOrder = 1
     end
   end
   object pnlSettings: TPanel
