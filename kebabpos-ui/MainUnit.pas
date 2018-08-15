@@ -371,6 +371,8 @@ begin
         IntToStr(purchaseResponse.GetBankNonCashAmount));
       frmActions.richEdtFlow.Lines.Add('# BANKED CASH AMOUNT: ' +
         IntToStr(purchaseResponse.GetBankCashAmount));
+      frmActions.richEdtFlow.Lines.Add('# BANKED SURCHARGE AMOUNT: ' +
+        IntToStr(purchaseResponse.GetSurchargeAmount));
 	  end;
 
     SuccessState_Failed:
@@ -601,6 +603,8 @@ begin
         IntToStr(purchaseResponse.GetBankNonCashAmount));
       frmActions.richEdtFlow.Lines.Add('# BANKED CASH AMOUNT: ' +
         IntToStr(purchaseResponse.GetBankCashAmount));
+      frmActions.richEdtFlow.Lines.Add('# BANKED SURCHARGE AMOUNT: ' +
+        IntToStr(purchaseResponse.GetSurchargeAmount));
 	  end;
 
     SuccessState_Failed:
