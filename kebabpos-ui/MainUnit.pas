@@ -1204,7 +1204,7 @@ begin
   begin
     frmActions := frmActions.Create(frmMain, Spi);
     frmActions.PopupParent := frmMain;
-      frmMain.Enabled := False;
+    frmMain.Enabled := False;
   end;
 
   frmActions.Show;
@@ -1275,7 +1275,8 @@ begin
   _posId := frmMain.edtPosID.Text;
   _eftposAddress := frmMain.edtEftposAddress.Text;
 
-  Spi := ComWrapper.SpiInit(_posId, _eftposAddress, SpiSecrets);
+  Spi := ComWrapper.SpiInit(_posId, '', _eftposAddress, SpiSecrets);
+  Spi.SetPosInfo('assembly', '2.4.5');
 
   ComWrapper.Main(Spi, LongInt(@TxFlowStateChanged),
     LongInt(@PairingFlowStateChanged), LongInt(@SecretsChanged),
@@ -1323,6 +1324,7 @@ begin
   Spi := CreateComObject(CLASS_Spi) AS SPIClient_TLB.Spi;
   SpiSecrets := CreateComObject(CLASS_Secrets) AS SPIClient_TLB.Secrets;
   SpiSecrets := nil;
+
 
   frmMain.edtPosID.Text := 'DELPHIPOS';
   lblStatus.Color := clRed;
@@ -1518,7 +1520,6 @@ end;
 procedure TfrmMain.btnSettleClick(Sender: TObject);
 var
   settleres: SPIClient_TLB.InitiateTxResult;
-  amount: Integer;
 begin
   if (not Assigned(frmActions)) then
   begin
@@ -1562,7 +1563,6 @@ end;
 procedure TfrmMain.btnSettleEnqClick(Sender: TObject);
 var
   senqres: SPIClient_TLB.InitiateTxResult;
-  amount: Integer;
 begin
   if (not Assigned(frmActions)) then
   begin
@@ -1649,7 +1649,6 @@ end;
 procedure TfrmMain.btnRecoverClick(Sender: TObject);
 var
   rres: SPIClient_TLB.InitiateTxResult;
-  amount: Integer;
 begin
   if (not Assigned(frmActions)) then
   begin
