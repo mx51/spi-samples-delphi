@@ -750,7 +750,8 @@ begin
   _posId := frmMain.edtPosID.Text;
   _eftposAddress := frmMain.edtEftposAddress.Text;
 
-  Spi := ComWrapper.SpiInit(_posId, _eftposAddress, SpiSecrets);
+  Spi := ComWrapper.SpiInit(_posId, '', _eftposAddress, SpiSecrets);
+  Spi.SetPosInfo('assembly', '2.4.7');
 
   ComWrapper.Main(Spi, LongInt(@TxFlowStateChanged),
     LongInt(@PairingFlowStateChanged), LongInt(@SecretsChanged),
