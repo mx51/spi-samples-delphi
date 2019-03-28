@@ -51,7 +51,7 @@ begin
     [rfReplaceAll, rfIgnoreCase]);
   printText := StringReplace(printText, '\r\n', sLineBreak,
     [rfReplaceAll, rfIgnoreCase]);
-  Result := StringReplace(printText, 'n', sLineBreak,
+  Result := StringReplace(printText, '\n', sLineBreak,
     [rfReplaceAll, rfIgnoreCase]);
 end;
 

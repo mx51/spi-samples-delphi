@@ -399,7 +399,7 @@ begin
   frmActions.lblFlowMessage.Caption :=
     'Please enter the print text and key you would like to print receipt';
   frmActions.btnAction1.Visible := True;
-  frmActions.btnAction1.Caption := ComponentNames.SETPRINT;
+  frmActions.btnAction1.Caption := ComponentNames.PRINT;
   frmActions.btnAction2.Visible := True;
   frmActions.btnAction2.Caption := ComponentNames.CANCEL;
   frmActions.btnAction3.Visible := False;
@@ -425,7 +425,7 @@ begin
   frmActions.lblFlowMessage.Caption :=
     'Please enter the receipt header and footer you would like to print';
   frmActions.btnAction1.Visible := True;
-  frmActions.btnAction1.Caption := ComponentNames.PRINT;
+  frmActions.btnAction1.Caption := ComponentNames.SETPRINT;
   frmActions.btnAction2.Visible := True;
   frmActions.btnAction2.Caption := ComponentNames.CANCEL;
   frmActions.btnAction3.Visible := False;
