@@ -5,39 +5,38 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
   System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
-  Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.ComCtrls, ComObj, SPIClient_TLB;
+  Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.ComCtrls, ComObj, SPIClient_TLB,
+  ComponentNames;
 
 type
   TfrmActions = class(TForm)
     pnlActions: TPanel;
     btnAction1: TButton;
     btnAction2: TButton;
-    lblAmount: TLabel;
-    edtAmount: TEdit;
+    lblAction1: TLabel;
+    edtAction1: TEdit;
     pnlFlow: TPanel;
     lblFlow: TLabel;
     lblFlowStatus: TLabel;
     lblFlowMessage: TLabel;
     richEdtFlow: TRichEdit;
     btnAction3: TButton;
-    lblTableId: TLabel;
-    edtTableId: TEdit;
+    edtAction2: TEdit;
+    lblAction2: TLabel;
+    edtAction3: TEdit;
+    lblAction3: TLabel;
+    cboxAction1: TCheckBox;
+    lblAction4: TLabel;
+    edtAction4: TEdit;
     procedure btnAction1Click(Sender: TObject);
-    procedure FormCreate(Sender: TObject);
-    procedure FormHide(Sender: TObject);
     procedure btnAction2Click(Sender: TObject);
     procedure btnAction3Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure FormShow(Sender: TObject);
   private
-    { Private declarations }
-  public
-    constructor Create(AOwner: TComponent; _Spi: SPIClient_TLB.Spi); overload;
-  end;
 
-var
-  Spi: SPIClient_TLB.Spi;
-  ComWrapper: SPIClient_TLB.ComWrapper;
+  public
+
+  end;
 
 implementation
 
@@ -45,26 +44,37 @@ implementation
 
 uses MainUnit;
 
-constructor TfrmActions.Create(AOwner: TComponent; _Spi: SPIClient_TLB.Spi);
+function SanitizePrintText(printText: WideString): WideString;
 begin
-  inherited Create(AOwner);
-  Spi := _Spi;
-  ComWrapper := CreateComObject(CLASS_ComWrapper) AS SPIClient_TLB.ComWrapper;
+  printText := StringReplace(printText, '\\emphasis', '\emphasis',
+    [rfReplaceAll, rfIgnoreCase]);
+  printText := StringReplace(printText, '\\clear', '\clear',
+    [rfReplaceAll, rfIgnoreCase]);
+  printText := StringReplace(printText, '\r\n', sLineBreak,
+    [rfReplaceAll, rfIgnoreCase]);
+  Result := StringReplace(printText, 'n', sLineBreak,
+    [rfReplaceAll, rfIgnoreCase]);
 end;
 
 procedure DoPurchase;
 var
   purchase: SPIClient_TLB.InitiateTxResult;
-  amount: Integer;
+  amount, tipAmount, cashoutAmount, surchargeAmount: Integer;
   posRefId: WideString;
+  promptForCashout: Boolean;
 begin
-  amount := StrToInt(frmActions.edtAmount.Text);
-  frmActions.richEdtFlow.Lines.Clear;
+  amount := StrToInt(frmActions.edtAction1.Text);
+  tipAmount := StrToInt(frmActions.edtAction2.Text);
+  cashoutAmount := StrToInt(frmActions.edtAction3.Text);
+  surchargeAmount := StrToInt(frmActions.edtAction4.Text);
+  promptForCashout := frmActions.cboxAction1.Checked;
+  frmActions.richEdtFlow.Lines.clear;
 
   purchase := CreateComObject(CLASS_InitiateTxResult)
     AS SPIClient_TLB.InitiateTxResult;
-  posRefId := 'purchase-' + FormatDateTime('dd-mm-yyyy-hh-nn-ss', Now);
-  purchase := Spi.InitiatePurchaseTxV2(posRefId, amount, 0, 0, False);
+  posRefId := 'prchs-' + FormatDateTime('dd-mm-yyyy-hh-nn-ss', Now);
+  purchase := frmMain.spi.InitiatePurchaseTxV2_3(posRefId, amount, tipAmount,
+    cashoutAmount, promptForCashout, frmMain.options, surchargeAmount);
 
   if (purchase.Initiated) then
   begin
@@ -83,10 +93,12 @@ var
   refund: SPIClient_TLB.InitiateTxResult;
   amount: Integer;
 begin
-  amount := StrToInt(frmActions.edtAmount.Text);
+  amount := StrToInt(frmActions.edtAction1.Text);
   refund := CreateComObject(CLASS_InitiateTxResult)
     AS SPIClient_TLB.InitiateTxResult;
-  refund := Spi.InitiateRefundTx('rfnd-' + FormatDateTime('o', Now), amount);
+  refund := frmMain.spi.InitiateRefundTx_3
+    ('rfnd-' + FormatDateTime('dd-mm-yyyy-hh-nn-ss', Now), amount,
+    frmActions.cboxAction1.Checked, frmMain.options);
 
   if (refund.Initiated) then
   begin
@@ -100,47 +112,61 @@ begin
   end;
 end;
 
-procedure TfrmActions.FormClose(Sender: TObject;
-  var Action: TCloseAction);
+procedure DoHeaderFooter;
+begin
+  frmMain.options.SetCustomerReceiptHeader
+    (SanitizePrintText(frmActions.edtAction1.Text));
+  frmMain.options.SetMerchantReceiptHeader
+    (SanitizePrintText(frmActions.edtAction1.Text));
+  frmMain.options.SetCustomerReceiptFooter
+    (SanitizePrintText(frmActions.edtAction2.Text));
+  frmMain.options.SetMerchantReceiptFooter
+    (SanitizePrintText(frmActions.edtAction2.Text));
+
+  frmActions.lblFlowMessage.Caption :=
+    '# --> Receipt Header and Footer is entered';
+
+  frmActions.btnAction1.Enabled := True;
+  frmActions.btnAction1.Visible := True;
+  frmActions.btnAction1.Caption := ComponentNames.OK;
+  frmActions.btnAction2.Visible := false;
+  frmActions.btnAction3.Visible := false;
+  frmActions.lblAction1.Visible := false;
+  frmActions.lblAction2.Visible := false;
+  frmActions.lblAction3.Visible := false;
+  frmActions.lblAction4.Visible := false;
+  frmActions.edtAction1.Visible := false;
+  frmActions.edtAction2.Visible := false;
+  frmActions.edtAction3.Visible := false;
+  frmActions.edtAction4.Visible := false;
+  frmActions.cboxAction1.Visible := false;
+end;
+
+procedure TfrmActions.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   Action := caFree;
 end;
 
-procedure TfrmActions.FormCreate(Sender: TObject);
-begin
-  ComWrapper := CreateComObject(CLASS_ComWrapper) AS SPIClient_TLB.ComWrapper;
-end;
-
-procedure TfrmActions.FormHide(Sender: TObject);
-begin
-  frmMain.Enabled := True;
-end;
-
-procedure TfrmActions.FormShow(Sender: TObject);
-begin
-  lblFlowStatus.Caption := ComWrapper.GetSpiFlowEnumName(Spi.CurrentFlow);
-end;
-
 procedure TfrmActions.btnAction1Click(Sender: TObject);
 begin
-  if (btnAction1.Caption = 'Confirm Code') then
+  if (btnAction1.Caption = ComponentNames.CONFIRMCODE) then
   begin
-    Spi.PairingConfirmCode;
+    frmMain.spi.PairingConfirmCode;
   end
-  else if (btnAction1.Caption = 'Cancel Pairing') then
+  else if (btnAction1.Caption = ComponentNames.CANCELPAIRING) then
   begin
-    Spi.PairingCancel;
+    frmActions.btnAction1.Enabled := false;
+    frmMain.spi.PairingCancel;
     frmMain.lblStatus.Color := clRed;
   end
-  else if (btnAction1.Caption = 'Cancel') then
+  else if (btnAction1.Caption = ComponentNames.CANCEL) then
   begin
-    Spi.CancelTransaction;
+    frmActions.btnAction1.Enabled := false;
+    frmMain.spi.CancelTransaction;
   end
-  else if (btnAction1.Caption = 'OK') then
+  else if (btnAction1.Caption = ComponentNames.OK) then
   begin
-    Spi.AckFlowEndedAndBackToIdle;
-    frmActions.richEdtFlow.Lines.Clear;
-    frmActions.lblFlowMessage.Caption := 'Select from the options below';
+    frmMain.spi.AckFlowEndedAndBackToIdle;
     TMyWorkerThread.Create(false);
     frmMain.Enabled := True;
     frmMain.btnPair.Enabled := True;
@@ -148,99 +174,113 @@ begin
     frmMain.edtEftposAddress.Enabled := True;
     Hide;
   end
-  else if (btnAction1.Caption = 'OK-Unpaired') then
+  else if (btnAction1.Caption = ComponentNames.OKUNPAIRED) then
   begin
-    Spi.AckFlowEndedAndBackToIdle;
-    frmActions.richEdtFlow.Lines.Clear;
-    frmMain.Enabled := True;
+    frmMain.spi.AckFlowEndedAndBackToIdle;
+    frmMain.btnPair.Caption := ComponentNames.PAIR;
+    frmMain.lblStatus.Color := clRed;
     frmMain.btnPair.Enabled := True;
     frmMain.edtPosID.Enabled := True;
     frmMain.edtEftposAddress.Enabled := True;
-    frmMain.btnPair.Caption := 'Pair';
-    frmMain.pnlTableActions.Visible := False;
-    frmMain.pnlOtherActions.Visible := False;
+    frmMain.pnlTableActions.Visible := false;
+    frmMain.pnlEftposSettings.Visible := false;
+    frmMain.pnlOtherActions.Visible := false;
     frmMain.lblStatus.Color := clRed;
+    frmMain.Enabled := True;
     Hide;
   end
-  else if (btnAction1.Caption = 'Accept Signature') then
+  else if (btnAction1.Caption = ComponentNames.ACCEPTSIGNATURE) then
   begin
-    Spi.AcceptSignature(True);
+    frmMain.spi.ACCEPTSIGNATURE(True);
   end
-  else if (btnAction1.Caption = 'Retry') then
+  else if (btnAction1.Caption = ComponentNames.RETRY) then
   begin
-    Spi.AckFlowEndedAndBackToIdle;
-    frmActions.richEdtFlow.Lines.Clear;
-    if (Spi.CurrentTxFlowState.type_ = TransactionType_Purchase) then
+    frmMain.spi.AckFlowEndedAndBackToIdle;
+    frmActions.richEdtFlow.Lines.clear;
+    if (frmMain.spi.CurrentTxFlowState.type_ = TransactionType_Purchase) then
     begin
       DoPurchase;
     end
-    else if (Spi.CurrentTxFlowState.type_ = TransactionType_Refund) then
+    else if (frmMain.spi.CurrentTxFlowState.type_ = TransactionType_Refund) then
     begin
       DoRefund;
     end
     else
     begin
-      frmActions.lblFlowStatus.Caption :=
-        'Retry by selecting from the options below';
+      frmActions.lblFlowMessage.Caption :=
+        'Retry by selecting from the options';
       TMyWorkerThread.Create(false);
     end;
   end
-  else if (btnAction1.Caption = 'Purchase') then
+  else if (btnAction1.Caption = ComponentNames.purchase) then
   begin
     DoPurchase;
   end
-  else if (btnAction1.Caption = 'Refund') then
+  else if (btnAction1.Caption = ComponentNames.refund) then
   begin
     DoRefund;
   end
-  else if (btnAction1.Caption = 'Open') then
+  else if (btnAction1.Caption = ComponentNames.OPEN) then
   begin
     frmMain.OpenTable;
   end
-  else if (btnAction1.Caption = 'Close') then
+  else if (btnAction1.Caption = ComponentNames.CLOSE) then
   begin
     frmMain.CloseTable;
   end
-  else if (btnAction1.Caption = 'Add') then
+  else if (btnAction1.Caption = ComponentNames.Add) then
   begin
     frmMain.AddToTable;
   end
-  else if (btnAction1.Caption = 'Print Bill') then
+  else if (btnAction1.Caption = ComponentNames.PRINTBILL) then
   begin
-    frmMain.PrintBill('');
+    frmMain.PRINTBILL('');
   end
-  else if (btnAction1.Caption = 'Get Bill') then
+  else if (btnAction1.Caption = ComponentNames.GETBILL) then
   begin
-    frmMain.GetBill;
+    frmMain.GETBILL;
+  end
+  else if (btnAction1.Caption = ComponentNames.SETPRINT) then
+  begin
+    DoHeaderFooter;
+  end
+  else if (btnAction1.Caption = ComponentNames.PRINT) then
+  begin
+    frmMain.spi.PrintReport(frmActions.edtAction1.Text,
+      SanitizePrintText(frmActions.edtAction2.Text));
+  end
+  else if (btnAction1.Caption = ComponentNames.SETLOCK) then
+  begin
+    frmMain.LockTable;
   end;
 end;
 
 procedure TfrmActions.btnAction2Click(Sender: TObject);
 begin
-  if (btnAction2.Caption = 'Cancel Pairing') then
+  if (btnAction2.Caption = ComponentNames.CANCELPAIRING) then
   begin
-    Spi.PairingCancel;
+    frmMain.spi.PairingCancel;
     frmMain.lblStatus.Color := clRed;
   end
-  else if (btnAction2.Caption = 'Decline Signature') then
+  else if (btnAction2.Caption = ComponentNames.DECLINESIGNATURE) then
   begin
-    Spi.AcceptSignature(False);
+    frmMain.spi.ACCEPTSIGNATURE(false);
   end
-  else if (btnAction2.Caption = 'Cancel') then
+  else if (btnAction2.Caption = ComponentNames.CANCEL) then
   begin
-    Spi.AckFlowEndedAndBackToIdle;
-    frmActions.richEdtFlow.Lines.Clear;
+    frmMain.spi.AckFlowEndedAndBackToIdle;
+    frmActions.richEdtFlow.Lines.clear;
     TMyWorkerThread.Create(false);
     frmMain.Enabled := True;
-    Hide;
+    Hide
   end;
 end;
 
 procedure TfrmActions.btnAction3Click(Sender: TObject);
 begin
-  if (btnAction3.Caption = 'Cancel') then
+  if (btnAction3.Caption = ComponentNames.CANCEL) then
   begin
-    Spi.CancelTransaction;
+    frmMain.spi.CancelTransaction;
   end;
 end;
 

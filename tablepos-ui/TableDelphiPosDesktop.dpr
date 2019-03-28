@@ -3,7 +3,8 @@ program TableDelphiPosDesktop;
 uses
   Vcl.Forms,
   MainUnit in 'MainUnit.pas' {frmMain},
-  ActionsUnit in 'ActionsUnit.pas' {frmActions};
+  ActionsUnit in 'ActionsUnit.pas' {frmActions},
+  ComponentNames in 'ComponentNames.pas';
 
 {$R *.res}
 

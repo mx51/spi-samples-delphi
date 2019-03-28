@@ -3,8 +3,8 @@ object frmMain: TfrmMain
   Top = 103
   AutoSize = True
   BorderIcons = [biSystemMenu]
-  Caption = 'Motel Delphi Pos'
-  ClientHeight = 607
+  Caption = 'Motel Pos'
+  ClientHeight = 670
   ClientWidth = 626
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -21,9 +21,9 @@ object frmMain: TfrmMain
   TextHeight = 13
   object pnlStatus: TPanel
     Left = 0
-    Top = 225
+    Top = 177
     Width = 313
-    Height = 110
+    Height = 104
     BorderStyle = bsSingle
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -37,20 +37,20 @@ object frmMain: TfrmMain
       Left = 1
       Top = 1
       Width = 307
-      Height = 33
+      Height = 25
       Align = alTop
       Alignment = taCenter
       Caption = 'Status'
       Color = clSilver
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
-      Font.Height = -27
+      Font.Height = -21
       Font.Name = 'Tahoma'
       Font.Style = []
       ParentColor = False
       ParentFont = False
       Transparent = False
-      ExplicitWidth = 74
+      ExplicitWidth = 58
     end
     object lblStatus: TLabel
       Left = 60
@@ -77,6 +77,12 @@ object frmMain: TfrmMain
       Width = 123
       Height = 34
       Caption = 'Pair'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -21
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
       TabOrder = 0
       OnClick = btnPairClick
     end
@@ -86,6 +92,12 @@ object frmMain: TfrmMain
       Width = 123
       Height = 34
       Caption = 'Secrets'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -21
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
       TabOrder = 1
       Visible = False
       OnClick = btnSecretsClick
@@ -95,7 +107,7 @@ object frmMain: TfrmMain
     Left = 313
     Top = 0
     Width = 313
-    Height = 607
+    Height = 670
     BorderStyle = bsSingle
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -108,26 +120,26 @@ object frmMain: TfrmMain
       Left = 1
       Top = 1
       Width = 307
-      Height = 33
+      Height = 25
       Align = alTop
       Alignment = taCenter
       Caption = 'Receipt'
       Color = clSilver
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
-      Font.Height = -27
+      Font.Height = -21
       Font.Name = 'Tahoma'
       Font.Style = []
       ParentColor = False
       ParentFont = False
       Transparent = False
-      ExplicitWidth = 87
+      ExplicitWidth = 69
     end
     object richEdtReceipt: TRichEdit
-      Left = 0
-      Top = 35
+      Left = 1
+      Top = 24
       Width = 307
-      Height = 564
+      Height = 638
       Font.Charset = ANSI_CHARSET
       Font.Color = clWindowText
       Font.Height = -11
@@ -142,7 +154,7 @@ object frmMain: TfrmMain
   end
   object pnlPreAuthActions: TPanel
     Left = 0
-    Top = 335
+    Top = 398
     Width = 313
     Height = 160
     BorderStyle = bsSingle
@@ -158,20 +170,20 @@ object frmMain: TfrmMain
       Left = 1
       Top = 1
       Width = 307
-      Height = 33
+      Height = 25
       Align = alTop
       Alignment = taCenter
       Caption = 'Pre-Auth Actions'
       Color = clSilver
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
-      Font.Height = -27
+      Font.Height = -21
       Font.Name = 'Tahoma'
       Font.Style = []
       ParentColor = False
       ParentFont = False
       Transparent = False
-      ExplicitWidth = 197
+      ExplicitWidth = 157
     end
     object btnVerify: TButton
       Left = 20
@@ -264,7 +276,7 @@ object frmMain: TfrmMain
       OnClick = btnTopUpClick
     end
     object btnCancel: TButton
-      Left = 117
+      Left = 68
       Top = 120
       Width = 80
       Height = 34
@@ -278,10 +290,25 @@ object frmMain: TfrmMain
       TabOrder = 6
       OnClick = btnCancelClick
     end
+    object btnRecovery: TButton
+      Left = 165
+      Top = 118
+      Width = 80
+      Height = 34
+      Caption = 'Recovery'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -16
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 7
+      OnClick = btnRecoveryClick
+    end
   end
   object pnlOtherActions: TPanel
     Left = 0
-    Top = 495
+    Top = 558
     Width = 313
     Height = 112
     BorderStyle = bsSingle
@@ -297,40 +324,31 @@ object frmMain: TfrmMain
       Left = 1
       Top = 1
       Width = 307
-      Height = 33
+      Height = 25
       Align = alTop
       Alignment = taCenter
       Caption = 'Other Actions'
       Color = clSilver
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
-      Font.Height = -27
+      Font.Height = -21
       Font.Name = 'Tahoma'
       Font.Style = []
       ParentColor = False
       ParentFont = False
       Transparent = False
-      ExplicitWidth = 160
+      ExplicitWidth = 127
     end
-    object lblReference: TLabel
-      Left = 1
-      Top = 40
-      Width = 75
-      Height = 19
-      Caption = 'Reference:'
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -16
-      Font.Name = 'Tahoma'
-      Font.Style = []
-      ParentFont = False
-    end
-    object btnRecover: TButton
-      Left = 147
-      Top = 70
-      Width = 158
-      Height = 34
-      Caption = 'Recover'
+    object btnFreeformReceipt: TButton
+      Left = 11
+      Top = 33
+      Width = 137
+      Height = 31
+      Margins.Left = 4
+      Margins.Top = 4
+      Margins.Right = 4
+      Margins.Bottom = 4
+      Caption = 'Freeform Receipt'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -16
@@ -338,27 +356,75 @@ object frmMain: TfrmMain
       Font.Style = []
       ParentFont = False
       TabOrder = 0
-      OnClick = btnRecoverClick
+      WordWrap = True
+      OnClick = btnFreeformReceiptClick
     end
-    object edtReference: TEdit
-      Left = 147
-      Top = 40
-      Width = 158
-      Height = 24
+    object btnTerminalStatus: TButton
+      Left = 156
+      Top = 33
+      Width = 136
+      Height = 32
+      Margins.Left = 4
+      Margins.Top = 4
+      Margins.Right = 4
+      Margins.Bottom = 4
+      Caption = 'Terminal Status'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
-      Font.Height = -13
+      Font.Height = -16
       Font.Name = 'Tahoma'
       Font.Style = []
       ParentFont = False
       TabOrder = 1
+      WordWrap = True
+      OnClick = btnTerminalStatusClick
+    end
+    object btnTerminalSettings: TButton
+      Left = 156
+      Top = 72
+      Width = 136
+      Height = 32
+      Margins.Left = 4
+      Margins.Top = 4
+      Margins.Right = 4
+      Margins.Bottom = 4
+      Caption = 'Terminal Settings'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -16
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 2
+      WordWrap = True
+      OnClick = btnTerminalSettingsClick
+    end
+    object btnHeaderFooter: TButton
+      Left = 12
+      Top = 72
+      Width = 136
+      Height = 31
+      Margins.Left = 4
+      Margins.Top = 4
+      Margins.Right = 4
+      Margins.Bottom = 4
+      Caption = 'Header Footer'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -16
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 3
+      WordWrap = True
+      OnClick = btnHeaderFooterClick
     end
   end
   object pnlSettings: TPanel
     Left = 0
     Top = 0
     Width = 313
-    Height = 225
+    Height = 177
     BorderStyle = bsSingle
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -371,20 +437,20 @@ object frmMain: TfrmMain
       Left = 1
       Top = 1
       Width = 307
-      Height = 33
+      Height = 25
       Align = alTop
       Alignment = taCenter
       Caption = 'Settings'
       Color = clSilver
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
-      Font.Height = -27
+      Font.Height = -21
       Font.Name = 'Tahoma'
       Font.Style = []
       ParentColor = False
       ParentFont = False
       Transparent = False
-      ExplicitWidth = 95
+      ExplicitWidth = 75
     end
     object lblPosID: TLabel
       Left = 1
@@ -409,36 +475,6 @@ object frmMain: TfrmMain
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -16
-      Font.Name = 'Tahoma'
-      Font.Style = []
-      ParentFont = False
-      WordWrap = True
-    end
-    object lblReceiptFrom: TLabel
-      Left = 5
-      Top = 134
-      Width = 150
-      Height = 19
-      AutoSize = False
-      Caption = 'Receipt From EFTPOS:'
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -13
-      Font.Name = 'Tahoma'
-      Font.Style = []
-      ParentFont = False
-      WordWrap = True
-    end
-    object lblSignFrom: TLabel
-      Left = 5
-      Top = 157
-      Width = 150
-      Height = 19
-      AutoSize = False
-      Caption = 'Sign From EFTPOS:'
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -13
       Font.Name = 'Tahoma'
       Font.Style = []
       ParentFont = False
@@ -472,42 +508,6 @@ object frmMain: TfrmMain
       ParentFont = False
       TabOrder = 0
     end
-    object radioSign: TRadioGroup
-      Left = 145
-      Top = 131
-      Width = 160
-      Height = 42
-      Columns = 2
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -16
-      Font.Name = 'Tahoma'
-      Font.Style = []
-      ItemIndex = 0
-      Items.Strings = (
-        'Yes'
-        'No')
-      ParentFont = False
-      TabOrder = 3
-    end
-    object radioReceipt: TRadioGroup
-      Left = 145
-      Top = 109
-      Width = 160
-      Height = 42
-      Columns = 2
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -16
-      Font.Name = 'Tahoma'
-      Font.Style = []
-      ItemIndex = 0
-      Items.Strings = (
-        'Yes'
-        'No')
-      ParentFont = False
-      TabOrder = 2
-    end
     object edtEftposAddress: TEdit
       Left = 143
       Top = 70
@@ -522,8 +522,8 @@ object frmMain: TfrmMain
       TabOrder = 1
     end
     object btnSave: TButton
-      Left = 147
-      Top = 179
+      Left = 143
+      Top = 130
       Width = 158
       Height = 34
       Caption = 'Save'
@@ -533,7 +533,7 @@ object frmMain: TfrmMain
       Font.Name = 'Tahoma'
       Font.Style = []
       ParentFont = False
-      TabOrder = 4
+      TabOrder = 2
       OnClick = btnSaveClick
     end
     object edtSecrets: TEdit
@@ -547,7 +547,107 @@ object frmMain: TfrmMain
       Font.Name = 'Tahoma'
       Font.Style = []
       ParentFont = False
-      TabOrder = 5
+      TabOrder = 3
+    end
+  end
+  object pnlEftposSettings: TPanel
+    Left = 0
+    Top = 281
+    Width = 313
+    Height = 117
+    Margins.Left = 4
+    Margins.Top = 4
+    Margins.Right = 4
+    Margins.Bottom = 4
+    BorderStyle = bsSingle
+    UseDockManager = False
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -26
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
+    TabOrder = 5
+    Visible = False
+    object lblEftposSettings: TLabel
+      Left = 1
+      Top = 1
+      Width = 307
+      Height = 25
+      Margins.Left = 4
+      Margins.Top = 4
+      Margins.Right = 4
+      Margins.Bottom = 4
+      Align = alTop
+      Alignment = taCenter
+      Caption = 'EFTPOS Settings'
+      Color = clSilver
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -21
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentColor = False
+      ParentFont = False
+      Transparent = False
+      ExplicitWidth = 156
+    end
+    object cboxReceiptFromEftpos: TCheckBox
+      Left = 4
+      Top = 34
+      Width = 200
+      Height = 20
+      Margins.Left = 4
+      Margins.Top = 4
+      Margins.Right = 4
+      Margins.Bottom = 4
+      Caption = 'Receipt From EFTPOS'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -16
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 0
+      OnClick = cboxReceiptFromEftposClick
+    end
+    object cboxSignFromEftpos: TCheckBox
+      Left = 4
+      Top = 62
+      Width = 200
+      Height = 20
+      Margins.Left = 4
+      Margins.Top = 4
+      Margins.Right = 4
+      Margins.Bottom = 4
+      Caption = 'Sign From EFTPOS'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -16
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 1
+      OnClick = cboxSignFromEftposClick
+    end
+    object cboxPrintMerchantCopy: TCheckBox
+      Left = 4
+      Top = 90
+      Width = 200
+      Height = 20
+      Margins.Left = 4
+      Margins.Top = 4
+      Margins.Right = 4
+      Margins.Bottom = 4
+      Caption = 'Print Merchant Copy'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -16
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 2
+      OnClick = cboxPrintMerchantCopyClick
     end
   end
 end
