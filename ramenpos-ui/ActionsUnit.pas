@@ -191,14 +191,31 @@ end;
 
 procedure DoHeaderFooter;
 begin
-  frmMain.options.SetCustomerReceiptHeader
-    (SanitizePrintText(frmActions.edtAction1.Text));
-  frmMain.options.SetMerchantReceiptHeader
-    (SanitizePrintText(frmActions.edtAction1.Text));
-  frmMain.options.SetCustomerReceiptFooter
-    (SanitizePrintText(frmActions.edtAction2.Text));
-  frmMain.options.SetMerchantReceiptFooter
-    (SanitizePrintText(frmActions.edtAction2.Text));
+  if (frmActions.edtAction1.Text <> '') then
+  begin
+    frmMain.options.SetCustomerReceiptHeader
+      (SanitizePrintText(frmActions.edtAction1.Text));
+    frmMain.options.SetMerchantReceiptHeader
+      (SanitizePrintText(frmActions.edtAction1.Text));
+  end
+  else
+  begin
+    frmMain.options.SetCustomerReceiptHeader(' ');
+    frmMain.options.SetMerchantReceiptHeader(' ');
+  end;
+
+  if (frmActions.edtAction2.Text <> '') then
+  begin
+    frmMain.options.SetCustomerReceiptFooter
+      (SanitizePrintText(frmActions.edtAction2.Text));
+    frmMain.options.SetMerchantReceiptFooter
+      (SanitizePrintText(frmActions.edtAction2.Text));
+  end
+  else
+  begin
+    frmMain.options.SetCustomerReceiptFooter(' ');
+    frmMain.options.SetMerchantReceiptFooter(' ');
+  end;
 
   frmActions.lblFlowMessage.Caption :=
     '# --> Receipt Header and Footer is entered';

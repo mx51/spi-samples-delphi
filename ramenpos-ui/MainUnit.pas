@@ -1151,7 +1151,7 @@ end;
 procedure OnSecretsChanged(e: SPIClient_TLB.Secrets); stdcall;
 begin
   frmMain.spiSecrets := e;
-//  frmTransactions(frmTransactions.btnSecrets);
+  frmTransactions.menuItemSecretsClick(frmTransactions.menuItemSecrets);
   TMyWorkerThread.Create(false);
 end;
 
@@ -1488,6 +1488,7 @@ begin
   spiSecrets := nil;
   options := CreateComObject(CLASS_TransactionOptions)
     AS SPIClient_TLB.TransactionOptions;
+
   delegationPointers := CreateComObject(CLASS_DelegationPointers)
     AS SPIClient_TLB.delegationPointers;
 
