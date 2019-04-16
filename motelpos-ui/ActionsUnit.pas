@@ -12,46 +12,47 @@ type
     pnlActions: TPanel;
     btnAction1: TButton;
     btnAction2: TButton;
-    lblPreauthId: TLabel;
-    edtPreauthId: TEdit;
+    lblAction1: TLabel;
+    edtAction1: TEdit;
     pnlFlow: TPanel;
     lblFlow: TLabel;
     lblFlowStatus: TLabel;
     lblFlowMessage: TLabel;
     richEdtFlow: TRichEdit;
     btnAction3: TButton;
-    edtAmount: TEdit;
-    lblAmount: TLabel;
+    edtAction2: TEdit;
+    lblAction2: TLabel;
+    edtAction3: TEdit;
+    lblAction3: TLabel;
+    cboxAction1: TCheckBox;
+    lblAction4: TLabel;
+    edtAction4: TEdit;
     procedure btnAction1Click(Sender: TObject);
-    procedure FormCreate(Sender: TObject);
-    procedure FormHide(Sender: TObject);
     procedure btnAction2Click(Sender: TObject);
     procedure btnAction3Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure FormShow(Sender: TObject);
   private
     { Private declarations }
   public
-    constructor Create(AOwner: TComponent; _Spi: SPIClient_TLB.Spi); overload;
-  end;
 
-var
-  Spi: SPIClient_TLB.Spi;
-  SpiPreauth: SPIClient_TLB.SpiPreauth;
-  ComWrapper: SPIClient_TLB.ComWrapper;
+  end;
 
 implementation
 
 {$R *.dfm}
 
-uses MainUnit;
+uses MainUnit, ComponentNames;
 
-constructor TfrmActions.Create(AOwner: TComponent; _Spi: SPIClient_TLB.Spi);
+function SanitizePrintText(printText: WideString): WideString;
 begin
-  inherited Create(AOwner);
-  Spi := _Spi;
-  SpiPreauth := Spi.EnablePreauth;
-  ComWrapper := CreateComObject(CLASS_ComWrapper) AS SPIClient_TLB.ComWrapper;
+  printText := StringReplace(printText, '\\emphasis', '\emphasis',
+    [rfReplaceAll, rfIgnoreCase]);
+  printText := StringReplace(printText, '\\clear', '\clear',
+    [rfReplaceAll, rfIgnoreCase]);
+  printText := StringReplace(printText, '\r\n', sLineBreak,
+    [rfReplaceAll, rfIgnoreCase]);
+  Result := StringReplace(printText, '\n', sLineBreak,
+    [rfReplaceAll, rfIgnoreCase]);
 end;
 
 procedure DoOpen;
@@ -59,11 +60,12 @@ var
   initRes: SPIClient_TLB.InitiateTxResult;
   amount: Integer;
 begin
-  amount := StrToInt(frmActions.edtAmount.Text);
+  amount := StrToInt(frmActions.edtAction1.Text);
   initRes := CreateComObject(CLASS_InitiateTxResult)
     AS SPIClient_TLB.InitiateTxResult;
-  initRes := SpiPreauth.InitiateOpenTx('propen-' +
-    FormatDateTime('dd-mm-yyyy-hh-nn-ss', Now), amount);
+  initRes := frmMain.SpiPreauth.InitiateOpenTx_2
+    ('propen-' + FormatDateTime('dd-mm-yyyy-hh-nn-ss', Now), amount,
+    frmMain.options);
 
   if (initRes.Initiated) then
   begin
@@ -82,18 +84,18 @@ var
   initRes: SPIClient_TLB.InitiateTxResult;
   amount: Integer;
 begin
-  amount := StrToInt(frmActions.edtAmount.Text);
+  amount := StrToInt(frmActions.edtAction2.Text);
   initRes := CreateComObject(CLASS_InitiateTxResult)
     AS SPIClient_TLB.InitiateTxResult;
-  initRes := SpiPreauth.InitiateTopupTx('prtopup-' +
-    frmActions.edtPreauthId.Text + '-' +
-    FormatDateTime('dd-mm-yyyy-hh-nn-ss', Now), frmActions.edtPreauthId.Text,
-    amount);
+  initRes := frmMain.SpiPreauth.InitiateTopupTx_2
+    ('prtopup-' + frmActions.edtAction1.Text + '-' +
+    FormatDateTime('dd-mm-yyyy-hh-nn-ss', Now), frmActions.edtAction1.Text,
+    amount, frmMain.options);
 
   if (initRes.Initiated) then
   begin
-    frmActions.richEdtFlow.Lines.Add(
-      '# Preauth request initiated. Will be updated with Progress.');
+    frmActions.richEdtFlow.Lines.Add
+      ('# Preauth request initiated. Will be updated with Progress.');
   end
   else
   begin
@@ -107,17 +109,18 @@ var
   initRes: SPIClient_TLB.InitiateTxResult;
   amount: Integer;
 begin
-  amount := StrToInt(frmActions.edtAmount.Text);
+  amount := StrToInt(frmActions.edtAction2.Text);
   initRes := CreateComObject(CLASS_InitiateTxResult)
     AS SPIClient_TLB.InitiateTxResult;
-  initRes := SpiPreauth.InitiatePartialCancellationTx('prtopd-' +
-    frmActions.edtPreauthId.Text + '-' + FormatDateTime('dd-mm-yyyy-hh-nn-ss',
-    Now), frmActions.edtPreauthId.Text, amount);
+  initRes := frmMain.SpiPreauth.InitiatePartialCancellationTx_2
+    ('prtopd-' + frmActions.edtAction1.Text + '-' +
+    FormatDateTime('dd-mm-yyyy-hh-nn-ss', Now), frmActions.edtAction1.Text,
+    amount, frmMain.options);
 
   if (initRes.Initiated) then
   begin
-    frmActions.richEdtFlow.Lines.Add(
-      '# Preauth request initiated. Will be updated with Progress.');
+    frmActions.richEdtFlow.Lines.Add
+      ('# Preauth request initiated. Will be updated with Progress.');
   end
   else
   begin
@@ -132,14 +135,15 @@ var
 begin
   initRes := CreateComObject(CLASS_InitiateTxResult)
     AS SPIClient_TLB.InitiateTxResult;
-  initRes := SpiPreauth.InitiateExtendTx('prtopd-' +
-    frmActions.edtPreauthId.Text + '-' +
-    FormatDateTime('dd-mm-yyyy-hh-nn-ss', Now), frmActions.edtPreauthId.Text);
+  initRes := frmMain.SpiPreauth.InitiateExtendTx_2
+    ('prtopd-' + frmActions.edtAction1.Text + '-' +
+    FormatDateTime('dd-mm-yyyy-hh-nn-ss', Now), frmActions.edtAction1.Text,
+    frmMain.options);
 
   if (initRes.Initiated) then
   begin
-    frmActions.richEdtFlow.Lines.Add(
-      '# Preauth request initiated. Will be updated with Progress.');
+    frmActions.richEdtFlow.Lines.Add
+      ('# Preauth request initiated. Will be updated with Progress.');
   end
   else
   begin
@@ -151,20 +155,21 @@ end;
 procedure DoComplete;
 var
   initRes: SPIClient_TLB.InitiateTxResult;
-  amount: Integer;
+  amount, surchargeAmount: Integer;
 begin
-  amount := StrToInt(frmActions.edtAmount.Text);
+  amount := StrToInt(frmActions.edtAction2.Text);
+  surchargeAmount := StrToInt(frmActions.edtAction3.Text);
   initRes := CreateComObject(CLASS_InitiateTxResult)
     AS SPIClient_TLB.InitiateTxResult;
-  initRes := SpiPreauth.InitiateCompletionTx('prcomp-' +
-    frmActions.edtPreauthId.Text + '-' +
-    FormatDateTime('dd-mm-yyyy-hh-nn-ss', Now),
-    frmActions.edtPreauthId.Text, amount);
+  initRes := frmMain.SpiPreauth.InitiateCompletionTx_3
+    ('prcomp-' + frmActions.edtAction1.Text + '-' +
+    FormatDateTime('dd-mm-yyyy-hh-nn-ss', Now), frmActions.edtAction1.Text,
+    amount, surchargeAmount, frmMain.options);
 
   if (initRes.Initiated) then
   begin
-    frmActions.richEdtFlow.Lines.Add(
-      '# Preauth request initiated. Will be updated with Progress.');
+    frmActions.richEdtFlow.Lines.Add
+      ('# Preauth request initiated. Will be updated with Progress.');
   end
   else
   begin
@@ -179,14 +184,15 @@ var
 begin
   initRes := CreateComObject(CLASS_InitiateTxResult)
     AS SPIClient_TLB.InitiateTxResult;
-  initRes := SpiPreauth.InitiateCancelTx('prtopd-' +
-    frmActions.edtPreauthId.Text + '-' +
-    FormatDateTime('dd-mm-yyyy-hh-nn-ss', Now), frmActions.edtPreauthId.Text);
+  initRes := frmMain.SpiPreauth.InitiateCancelTx_2
+    ('prtopd-' + frmActions.edtAction1.Text + '-' +
+    FormatDateTime('dd-mm-yyyy-hh-nn-ss', Now), frmActions.edtAction1.Text,
+    frmMain.options);
 
   if (initRes.Initiated) then
   begin
-    frmActions.richEdtFlow.Lines.Add(
-      '# Preauth request initiated. Will be updated with Progress.');
+    frmActions.richEdtFlow.Lines.Add
+      ('# Preauth request initiated. Will be updated with Progress.');
   end
   else
   begin
@@ -195,78 +201,155 @@ begin
   end;
 end;
 
-procedure TfrmActions.FormClose(Sender: TObject;
-  var Action: TCloseAction);
+procedure DoRecovery;
+var
+  rres: SPIClient_TLB.InitiateTxResult;
+begin
+  if (frmActions.edtAction1.Text = '') then
+  begin
+    ShowMessage('Please enter refence!');
+  end
+  else
+  begin
+    frmActions.Show;
+    frmActions.btnAction1.Visible := True;
+    frmActions.btnAction1.Caption := 'Cancel';
+    frmActions.btnAction2.Visible := False;
+    frmActions.btnAction3.Visible := False;
+    frmActions.lblAction1.Visible := False;
+    frmActions.edtAction1.Visible := False;
+    frmActions.lblAction2.Visible := False;
+    frmActions.edtAction2.Visible := False;
+    frmActions.lblAction3.Visible := False;
+    frmActions.edtAction3.Visible := False;
+    frmActions.lblAction4.Visible := False;
+    frmActions.edtAction4.Visible := False;
+    frmActions.cboxAction1.Visible := False;
+    frmMain.Enabled := False;
+
+    rres := CreateComObject(CLASS_InitiateTxResult)
+      AS SPIClient_TLB.InitiateTxResult;
+
+    rres := frmMain.spi.InitiateRecovery(frmActions.edtAction1.Text,
+      TransactionType_Purchase);
+
+    if (rres.Initiated) then
+    begin
+      frmActions.richEdtFlow.Lines.Add
+        ('# Recovery Initiated. Will be updated with Progress.');
+    end
+    else
+    begin
+      frmActions.richEdtFlow.Lines.Add('# Could not initiate recovery: ' +
+        rres.Message + '. Please Retry.');
+    end;
+  end;
+end;
+
+procedure DoHeaderFooter;
+begin
+  if (frmActions.edtAction1.Text <> '') then
+  begin
+    frmMain.options.SetCustomerReceiptHeader
+      (SanitizePrintText(frmActions.edtAction1.Text));
+    frmMain.options.SetMerchantReceiptHeader
+      (SanitizePrintText(frmActions.edtAction1.Text));
+  end
+  else
+  begin
+    frmMain.options.SetCustomerReceiptHeader(' ');
+    frmMain.options.SetMerchantReceiptHeader(' ');
+  end;
+
+  if (frmActions.edtAction2.Text <> '') then
+  begin
+    frmMain.options.SetCustomerReceiptFooter
+      (SanitizePrintText(frmActions.edtAction2.Text));
+    frmMain.options.SetMerchantReceiptFooter
+      (SanitizePrintText(frmActions.edtAction2.Text));
+  end
+  else
+  begin
+    frmMain.options.SetCustomerReceiptFooter(' ');
+    frmMain.options.SetMerchantReceiptFooter(' ');
+  end;
+
+  frmActions.lblFlowMessage.Caption :=
+    '# --> Receipt Header and Footer is entered';
+
+  frmActions.btnAction1.Enabled := True;
+  frmActions.btnAction1.Visible := True;
+  frmActions.btnAction1.Caption := ComponentNames.OK;
+  frmActions.btnAction2.Visible := False;
+  frmActions.btnAction3.Visible := False;
+  frmActions.lblAction1.Visible := False;
+  frmActions.lblAction2.Visible := False;
+  frmActions.lblAction3.Visible := False;
+  frmActions.lblAction4.Visible := False;
+  frmActions.edtAction1.Visible := False;
+  frmActions.edtAction2.Visible := False;
+  frmActions.edtAction3.Visible := False;
+  frmActions.edtAction4.Visible := False;
+  frmActions.cboxAction1.Visible := False;
+end;
+
+procedure TfrmActions.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   Action := caFree;
 end;
 
-procedure TfrmActions.FormCreate(Sender: TObject);
-begin
-  ComWrapper := CreateComObject(CLASS_ComWrapper) AS SPIClient_TLB.ComWrapper;
-end;
-
-procedure TfrmActions.FormHide(Sender: TObject);
-begin
-  frmMain.Enabled := True;
-end;
-
-procedure TfrmActions.FormShow(Sender: TObject);
-begin
-  lblFlowStatus.Caption := ComWrapper.GetSpiFlowEnumName(Spi.CurrentFlow);
-end;
-
 procedure TfrmActions.btnAction1Click(Sender: TObject);
 begin
-  if (btnAction1.Caption = 'Confirm Code') then
+  if (btnAction1.Caption = ComponentNames.CONFIRMCODE) then
   begin
-    Spi.PairingConfirmCode;
+    frmMain.spi.PairingConfirmCode;
   end
-  else if (btnAction1.Caption = 'Cancel Pairing') then
+  else if (btnAction1.Caption = ComponentNames.CANCELPAIRING) then
   begin
-    Spi.PairingCancel;
+    frmActions.btnAction1.Enabled := False;
+    frmMain.spi.PairingCancel;
     frmMain.lblStatus.Color := clRed;
   end
-  else if (btnAction1.Caption = 'Cancel') then
+  else if (btnAction1.Caption = ComponentNames.CANCEL) then
   begin
-    Spi.CancelTransaction;
+    frmActions.btnAction1.Enabled := False;
+    frmMain.spi.CancelTransaction;
   end
-  else if (btnAction1.Caption = 'OK') then
+  else if (btnAction1.Caption = ComponentNames.OK) then
   begin
-    Spi.AckFlowEndedAndBackToIdle;
-    frmActions.richEdtFlow.Lines.Clear;
-    frmActions.lblFlowMessage.Caption := 'Select from the options';
-    TMyWorkerThread.Create(false);
+    frmMain.spi.AckFlowEndedAndBackToIdle;
+    TMyWorkerThread.Create(False);
     frmMain.Enabled := True;
     frmMain.btnPair.Enabled := True;
     frmMain.edtPosID.Enabled := True;
     frmMain.edtEftposAddress.Enabled := True;
     Hide;
   end
-  else if (btnAction1.Caption = 'OK-Unpaired') then
+  else if (btnAction1.Caption = ComponentNames.OKUNPAIRED) then
   begin
-    Spi.AckFlowEndedAndBackToIdle;
-    frmActions.richEdtFlow.Lines.Clear;
-    frmMain.Enabled := True;
+    frmMain.spi.AckFlowEndedAndBackToIdle;
+    frmMain.btnPair.Caption := ComponentNames.PAIR;
+    frmMain.lblStatus.Color := clRed;
     frmMain.btnPair.Enabled := True;
     frmMain.edtPosID.Enabled := True;
     frmMain.edtEftposAddress.Enabled := True;
-    frmMain.btnPair.Caption := 'Pair';
     frmMain.pnlPreAuthActions.Visible := False;
+    frmMain.pnlEftposSettings.Visible := False;
     frmMain.pnlOtherActions.Visible := False;
     frmMain.lblStatus.Color := clRed;
+    frmMain.Enabled := True;
     Hide;
   end
-  else if (btnAction1.Caption = 'Accept Signature') then
+  else if (btnAction1.Caption = ComponentNames.ACCEPTSIGNATURE) then
   begin
-    Spi.AcceptSignature(True);
+    frmMain.spi.ACCEPTSIGNATURE(True);
   end
-  else if (btnAction1.Caption = 'Retry') then
+  else if (btnAction1.Caption = ComponentNames.RETRY) then
   begin
-    Spi.AckFlowEndedAndBackToIdle;
-    frmActions.richEdtFlow.Lines.Clear;
+    frmMain.spi.AckFlowEndedAndBackToIdle;
+    frmActions.richEdtFlow.Lines.clear;
     frmActions.lblFlowMessage.Caption := 'Retry by selecting from the options';
-    TMyWorkerThread.Create(false);
+    TMyWorkerThread.Create(False);
   end
   else if (btnAction1.Caption = 'Open') then
   begin
@@ -291,25 +374,34 @@ begin
   else if (btnAction1.Caption = 'PreAuth Cancel') then
   begin
     DoCancel;
-  end;
+  end
+  else if (btnAction1.Caption = ComponentNames.SETPRINT) then
+  begin
+    DoHeaderFooter;
+  end
+  else if (btnAction1.Caption = ComponentNames.PRINT) then
+  begin
+    frmMain.spi.PrintReport(frmActions.edtAction1.Text,
+      SanitizePrintText(frmActions.edtAction2.Text));
+  end
 end;
 
 procedure TfrmActions.btnAction2Click(Sender: TObject);
 begin
   if (btnAction2.Caption = 'Cancel Pairing') then
   begin
-    Spi.PairingCancel;
+    frmMain.spi.PairingCancel;
     frmMain.lblStatus.Color := clRed;
   end
   else if (btnAction2.Caption = 'Decline Signature') then
   begin
-    Spi.AcceptSignature(False);
+    frmMain.spi.ACCEPTSIGNATURE(False);
   end
   else if (btnAction2.Caption = 'Cancel') then
   begin
-    Spi.AckFlowEndedAndBackToIdle;
-    frmActions.richEdtFlow.Lines.Clear;
-    TMyWorkerThread.Create(false);
+    frmMain.spi.AckFlowEndedAndBackToIdle;
+    frmActions.richEdtFlow.Lines.clear;
+    TMyWorkerThread.Create(False);
     frmMain.Enabled := True;
     Hide
   end;
@@ -319,7 +411,7 @@ procedure TfrmActions.btnAction3Click(Sender: TObject);
 begin
   if (btnAction3.Caption = 'Cancel') then
   begin
-    Spi.CancelTransaction;
+    frmMain.spi.CancelTransaction;
   end;
 end;
 

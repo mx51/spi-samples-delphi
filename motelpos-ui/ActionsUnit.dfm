@@ -4,8 +4,8 @@ object frmActions: TfrmActions
   AutoSize = True
   BorderIcons = []
   Caption = 'Actions'
-  ClientHeight = 457
-  ClientWidth = 423
+  ClientHeight = 505
+  ClientWidth = 489
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -16,16 +16,13 @@ object frmActions: TfrmActions
   Position = poDesigned
   Visible = True
   OnClose = FormClose
-  OnCreate = FormCreate
-  OnHide = FormHide
-  OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
   object pnlActions: TPanel
     Left = 0
-    Top = 330
-    Width = 423
-    Height = 127
+    Top = 336
+    Width = 489
+    Height = 169
     BorderStyle = bsSingle
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -34,12 +31,12 @@ object frmActions: TfrmActions
     Font.Style = []
     ParentFont = False
     TabOrder = 0
-    object lblPreauthId: TLabel
+    object lblAction4: TLabel
       Left = 2
-      Top = 12
-      Width = 65
+      Top = 103
+      Width = 55
       Height = 16
-      Caption = 'PreAuth Id:'
+      Caption = 'lblAction4'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -13
@@ -48,12 +45,40 @@ object frmActions: TfrmActions
       ParentFont = False
       Visible = False
     end
-    object lblAmount: TLabel
+    object lblAction3: TLabel
       Left = 2
-      Top = 47
-      Width = 93
+      Top = 70
+      Width = 55
       Height = 16
-      Caption = 'Amount (cents):'
+      Caption = 'lblAction3'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+      Visible = False
+    end
+    object lblAction2: TLabel
+      Left = 2
+      Top = 40
+      Width = 55
+      Height = 16
+      Caption = 'lblAction2'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+      Visible = False
+    end
+    object lblAction1: TLabel
+      Left = 2
+      Top = 12
+      Width = 55
+      Height = 16
+      Caption = 'lblAction1'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -13
@@ -63,10 +88,11 @@ object frmActions: TfrmActions
       Visible = False
     end
     object btnAction1: TButton
-      Left = 251
+      Left = 310
       Top = 4
       Width = 166
       Height = 34
+      Caption = 'btnAction1'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -16
@@ -77,40 +103,12 @@ object frmActions: TfrmActions
       Visible = False
       OnClick = btnAction1Click
     end
-    object btnAction2: TButton
-      Left = 251
-      Top = 44
-      Width = 166
-      Height = 34
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -16
-      Font.Name = 'Tahoma'
-      Font.Style = []
-      ParentFont = False
-      TabOrder = 1
-      Visible = False
-      OnClick = btnAction2Click
-    end
-    object edtPreauthId: TEdit
-      Left = 116
-      Top = 9
-      Width = 129
-      Height = 27
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -16
-      Font.Name = 'Tahoma'
-      Font.Style = []
-      ParentFont = False
-      TabOrder = 2
-      Visible = False
-    end
     object btnAction3: TButton
-      Left = 251
+      Left = 310
       Top = 84
       Width = 166
       Height = 34
+      Caption = 'btnAction3'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -16
@@ -121,10 +119,26 @@ object frmActions: TfrmActions
       Visible = False
       OnClick = btnAction3Click
     end
-    object edtAmount: TEdit
-      Left = 116
+    object btnAction2: TButton
+      Left = 310
       Top = 44
-      Width = 129
+      Width = 166
+      Height = 34
+      Caption = 'btnAction2'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -16
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 1
+      Visible = False
+      OnClick = btnAction2Click
+    end
+    object edtAction4: TEdit
+      Left = 191
+      Top = 103
+      Width = 113
       Height = 27
       Alignment = taRightJustify
       Font.Charset = DEFAULT_CHARSET
@@ -132,16 +146,79 @@ object frmActions: TfrmActions
       Font.Height = -16
       Font.Name = 'Tahoma'
       Font.Style = []
-      NumbersOnly = True
+      ParentFont = False
+      TabOrder = 7
+      Text = '0'
+      Visible = False
+    end
+    object edtAction3: TEdit
+      Left = 191
+      Top = 70
+      Width = 113
+      Height = 27
+      Alignment = taRightJustify
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -16
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 5
+      Text = '0'
+      Visible = False
+    end
+    object edtAction2: TEdit
+      Left = 191
+      Top = 37
+      Width = 113
+      Height = 27
+      Alignment = taRightJustify
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -16
+      Font.Name = 'Tahoma'
+      Font.Style = []
       ParentFont = False
       TabOrder = 4
+      Text = '0'
+      Visible = False
+    end
+    object edtAction1: TEdit
+      Left = 191
+      Top = 4
+      Width = 113
+      Height = 27
+      Alignment = taRightJustify
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -16
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 2
+      Text = '0'
+      Visible = False
+    end
+    object cboxAction1: TCheckBox
+      Left = 2
+      Top = 136
+      Width = 262
+      Height = 17
+      Caption = 'cboxAction1'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -16
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 6
       Visible = False
     end
   end
   object pnlFlow: TPanel
     Left = 0
     Top = 0
-    Width = 423
+    Width = 489
     Height = 336
     BorderStyle = bsSingle
     Font.Charset = DEFAULT_CHARSET
@@ -154,7 +231,7 @@ object frmActions: TfrmActions
     object lblFlow: TLabel
       Left = 0
       Top = 0
-      Width = 217
+      Width = 240
       Height = 33
       Alignment = taRightJustify
       AutoSize = False
@@ -170,9 +247,9 @@ object frmActions: TfrmActions
       Transparent = False
     end
     object lblFlowStatus: TLabel
-      Left = 211
+      Left = 238
       Top = 0
-      Width = 206
+      Width = 250
       Height = 33
       AutoSize = False
       Caption = 'Idle'
@@ -189,7 +266,7 @@ object frmActions: TfrmActions
     object lblFlowMessage: TLabel
       Left = 0
       Top = 33
-      Width = 417
+      Width = 476
       Height = 49
       AutoSize = False
       Font.Charset = DEFAULT_CHARSET
@@ -198,13 +275,13 @@ object frmActions: TfrmActions
       Font.Name = 'Tahoma'
       Font.Style = []
       ParentFont = False
-      Transparent = False
+      Transparent = True
       WordWrap = True
     end
     object richEdtFlow: TRichEdit
       Left = 0
       Top = 88
-      Width = 417
+      Width = 489
       Height = 242
       Font.Charset = ANSI_CHARSET
       Font.Color = clWindowText
